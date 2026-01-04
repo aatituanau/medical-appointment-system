@@ -1,21 +1,40 @@
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import LoginCard from "./features/auth/LoginCard";
+import RegisterCard from "./features/auth/RegisterCard";
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar />
+    <Router>
+      <div className="bg-background-light dark:bg-background-dark flex flex-col min-h-screen">
+        <Navbar />
 
-      <main className="flex-grow flex items-center justify-center p-6 relative">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-200/30 rounded-full blur-[100px] -z-10"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[100px] -z-10"></div>
+        <main className="flex-grow flex items-center justify-center p-4 relative">
+          {/* Fondo decorativo que se mantiene en todas las rutas de auth */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-[120px]"></div>
+          </div>
 
-        <LoginCard />
-      </main>
+          <Routes>
+            {/* Redirecciona la raíz al login por defecto */}
+            <Route path="/" element={<Navigate to="/login" />} />
 
-      <Footer />
-    </div>
+            <Route path="/login" element={<LoginCard />} />
+            <Route path="/register" element={<RegisterCard />} />
+
+            {/* Aquí irán tus futuras rutas como /dashboard o /citas */}
+          </Routes>
+        </main>
+
+        <Footer />
+      </div>
+    </Router>
   );
 }
 

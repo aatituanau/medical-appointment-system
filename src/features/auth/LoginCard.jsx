@@ -1,5 +1,6 @@
 import InputField from "../../components/ui/InputField";
 import logoH from "../../assets/logoH.png";
+import {Link} from "react-router-dom";
 
 const LoginCard = () => (
   <div className="w-full max-w-[450px] bg-white rounded-[2.5rem] shadow-2xl shadow-blue-900/10 border border-white overflow-hidden animate-fade-in-up">
@@ -66,11 +67,14 @@ const LoginCard = () => (
     </form>
 
     <div className="bg-slate-50/80 px-10 py-6 text-center border-t border-slate-100">
-      <p className="text-sm text-slate-500">
-        ¿Eres nuevo en la plataforma?
-        <a className="text-primary font-bold hover:underline ml-1" href="#">
+      <p className="text-sm text-slate-600">
+        ¿Eres nuevo?
+        <Link
+          to="/register"
+          className="text-primary font-bold hover:underline ml-1"
+        >
           Regístrate aquí
-        </a>
+        </Link>
       </p>
     </div>
   </div>
