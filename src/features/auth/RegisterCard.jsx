@@ -1,15 +1,14 @@
 import React from "react";
 import InputField from "../../components/ui/InputField";
+import {Link} from "react-router-dom";
+import logoH from "../../assets/logoH.png";
 
 const RegisterCard = () => {
   return (
     <div className="w-full max-w-[1100px] bg-white dark:bg-[#1a2632] rounded-[2.5rem] shadow-2xl shadow-blue-900/10 border border-white overflow-hidden flex flex-col md:flex-row min-h-[600px] animate-fade-in-up">
-      {/* Lado Izquierdo: Imagen e Información (Branding) */}
       <div className="relative w-full md:w-5/12 hidden md:flex flex-col justify-center items-center p-12 text-center group overflow-hidden">
-        {/* Overlay azul institucional */}
         <div className="absolute inset-0 bg-[#137fec]/85 mix-blend-multiply z-10"></div>
 
-        {/* Imagen de fondo (Hospital) */}
         <img
           alt="Hospital del Día"
           className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-105"
@@ -19,7 +18,7 @@ const RegisterCard = () => {
         <div className="relative z-20 flex flex-col gap-6 text-white">
           <div className="size-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-2 border border-white/30">
             <span className="material-symbols-outlined !text-[36px]">
-              health_and_safety
+              <img src={logoH} alt="Logo Hospital" className="h-14 w-auto" />
             </span>
           </div>
           <h3 className="text-3xl font-black leading-tight tracking-tight">
@@ -32,7 +31,6 @@ const RegisterCard = () => {
         </div>
       </div>
 
-      {/* Lado Derecho: Formulario */}
       <div className="w-full md:w-7/12 p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-white">
         <div className="max-w-md mx-auto w-full">
           <div className="mb-8">
@@ -50,7 +48,7 @@ const RegisterCard = () => {
           >
             <InputField
               label="Nombre Completo"
-              icon="person"
+              //icon="person"
               type="text"
               placeholder="Ej. Juan Pérez"
               id="fullname"
@@ -58,8 +56,8 @@ const RegisterCard = () => {
 
             <div className="flex flex-col gap-1">
               <InputField
-                label="Correo Institucional"
-                icon="school"
+                label="Correo Electrónico"
+                //icon="school"
                 type="email"
                 placeholder="estudiante@uce.edu.ec"
                 id="email"
@@ -72,14 +70,14 @@ const RegisterCard = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <InputField
                 label="Contraseña"
-                icon="lock"
+                //icon="lock"
                 type="password"
                 placeholder="******"
                 id="password"
               />
               <InputField
                 label="Confirmar"
-                icon="lock_reset"
+                //icon="lock_reset"
                 type="password"
                 placeholder="******"
                 id="confirm_password"
@@ -96,31 +94,24 @@ const RegisterCard = () => {
                 htmlFor="terms"
                 className="text-xs font-medium text-slate-500 leading-tight"
               >
-                Acepto los{" "}
-                <a className="text-primary font-bold hover:underline" href="#">
-                  Términos y Condiciones
-                </a>
-                .
+                Acepto losTérminos y Condiciones .
               </label>
             </div>
 
             <button className="mt-4 w-full h-12 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 group">
               <span>Crear mi cuenta</span>
-              <span className="material-symbols-outlined text-[20px] transition-transform group-hover:translate-x-1">
-                arrow_forward
-              </span>
             </button>
           </form>
 
           <div className="mt-8 text-center border-t border-slate-100 pt-6">
             <p className="text-slate-500 text-sm font-medium">
               ¿Ya tienes una cuenta?{" "}
-              <a
+              <Link
                 className="text-primary font-bold hover:underline ml-1"
-                href="#"
+                to="/login"
               >
                 Inicia sesión aquí
-              </a>
+              </Link>
             </p>
           </div>
         </div>
