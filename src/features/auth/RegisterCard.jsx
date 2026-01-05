@@ -2,6 +2,7 @@ import React from "react";
 import InputField from "../../components/ui/InputField";
 import {Link} from "react-router-dom";
 import logoH from "../../assets/logoH.png";
+import Hosp from "../../assets/Hosp.jpg";
 
 const RegisterCard = () => {
   return (
@@ -12,7 +13,7 @@ const RegisterCard = () => {
         <img
           alt="Hospital del Día"
           className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-105"
-          src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1000"
+          src={Hosp}
         />
 
         <div className="relative z-20 flex flex-col gap-6 text-white">
@@ -62,9 +63,6 @@ const RegisterCard = () => {
                 placeholder="estudiante@uce.edu.ec"
                 id="email"
               />
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide ml-1">
-                Solo dominios .edu.ec aceptados
-              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
