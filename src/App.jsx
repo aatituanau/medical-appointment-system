@@ -16,19 +16,14 @@ function App() {
         <Navbar />
 
         <main className="flex-grow flex items-center justify-center p-4 relative">
-          {/* Fondo decorativo que se mantiene en todas las rutas de auth */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-100/50 rounded-full blur-[120px]"></div>
           </div>
 
           <Routes>
-            {/* Redirecciona la raíz al login por defecto */}
             <Route path="/" element={<Navigate to="/login" />} />
-
             <Route path="/login" element={<LoginCard />} />
             <Route path="/register" element={<RegisterCard />} />
-
-            {/* Aquí irán tus futuras rutas como /dashboard o /citas */}
           </Routes>
         </main>
 
