@@ -37,9 +37,11 @@ const LoginCard = () => (
       />
 
       <div className="flex flex-col gap-3 mt-4">
-        <button className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-lg shadow-primary/30 transition-all">
-          Iniciar sesión
-        </button>
+        <Link to="/dashboard">
+          <button className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-lg shadow-primary/30 transition-all">
+            Iniciar sesión
+          </button>
+        </Link>
         <button className="w-full h-12 border-2 border-primary text-primary hover:bg-primary/5 font-bold rounded-2xl transition-all">
           Iniciar sesión Admin
         </button>
