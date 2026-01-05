@@ -8,6 +8,8 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import LoginCard from "./features/auth/LoginCard";
 import RegisterCard from "./features/auth/RegisterCard";
+import DashboardLayout from "./components/layout/DashboardLayout";
+import MainDashboard from "./features/dashboard/MainDashboard";
 
 function App() {
   return (
@@ -24,6 +26,18 @@ function App() {
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/login" element={<LoginCard />} />
             <Route path="/register" element={<RegisterCard />} />
+
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<MainDashboard />} />
+              <Route
+                path="/agendar"
+                element={<div>Aquí irá tu código de Agendar Cita</div>}
+              />
+              <Route path="/citas" element={<div>Página de Mis Citas</div>} />
+              <Route path="/perfil" element={<div>Página de Perfil</div>} />
+              <Route path="/ayuda" element={<div>Página de Ayuda</div>} />
+              <Route path="*" element={<div>404 Not Found</div>} />
+            </Route>
           </Routes>
         </main>
 
