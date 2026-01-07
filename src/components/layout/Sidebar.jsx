@@ -1,4 +1,5 @@
 import {NavLink} from "react-router-dom";
+import logoH from "../../assets/logoH.png";
 
 const Sidebar = () => {
   const menuItems = [
@@ -11,11 +12,9 @@ const Sidebar = () => {
 
   return (
     <aside className="w-64 h-screen bg-white border-r border-slate-200 flex flex-col py-6">
-      {/* Logo idéntico a la foto */}
       <div className="px-6 mb-10 flex items-center gap-3">
-        <span className="material-symbols-outlined text-primary text-3xl">
-          local_hospital
-        </span>
+        <img src={logoH} alt="Logo Hospital" className="h-10 w-auto" />
+
         <h1 className="text-xl font-bold text-slate-800 tracking-tight">
           Hospital del Día
         </h1>
@@ -46,7 +45,6 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* Info de Usuario abajo (como en la foto) */}
       <div className="px-4 mt-auto">
         <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
           <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-[10px] font-bold text-orange-600">

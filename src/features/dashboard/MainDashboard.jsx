@@ -5,7 +5,6 @@ const MainDashboard = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* Saludo */}
       <div>
         <h1 className="text-3xl font-extrabold text-slate-800">
           Hola, Usuario
@@ -15,7 +14,6 @@ const MainDashboard = () => {
         </p>
       </div>
 
-      {/* Grid de Tarjetas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
           <div className="h-44 bg-slate-200"></div> {/* Espacio para imagen */}
@@ -50,7 +48,6 @@ const MainDashboard = () => {
         </div>
       </div>
 
-      {/* Próxima Cita e Información */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex justify-between items-center mb-4">
