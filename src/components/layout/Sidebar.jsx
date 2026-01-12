@@ -7,7 +7,6 @@ const Sidebar = () => {
     {name: "Agendar Cita", icon: "calendar_add_on", path: "/agendar"},
     {name: "Mis Citas", icon: "calendar_month", path: "/citas"},
     {name: "Perfil", icon: "person", path: "/perfil"},
-    {name: "Ayuda", icon: "help", path: "/ayuda"},
   ];
 
   return (
