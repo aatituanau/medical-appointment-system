@@ -9,6 +9,7 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import {doc, setDoc, getDoc} from "firebase/firestore";
+import Footer from "../../components/layout/Footer";
 
 const LoginCard = () => {
   const navigate = useNavigate();
@@ -43,10 +44,26 @@ const LoginCard = () => {
     const password = e.target.password.value;
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/dashboard");
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+
+        if (userData.role === "admin") {
+          navigate("/admin/specialties");
+        } else {
+          navigate("/dashboard");
+        }
+      }
     } catch (error) {
-      alert("Usuario o contraseña incorrectos.");
+      alert("Error al iniciar sesión: " + error.message);
     }
   };
 
@@ -92,6 +109,7 @@ const LoginCard = () => {
             Iniciar sesión
           </button>
           <button
+            onClick={() => navigate("/admin/specialties")}
             type="button"
             className="w-full h-12 border-2 border-primary text-primary hover:bg-primary/5 font-bold rounded-2xl transition-all"
           >
