@@ -9,7 +9,14 @@ import Footer from "./components/layout/Footer";
 import LoginCard from "./features/auth/LoginCard";
 import RegisterCard from "./features/auth/RegisterCard";
 import DashboardLayout from "./components/layout/DashboardLayout";
-import MainDashboard from "./features/dashboard/MainDashboard";
+import MainDashboard from "./features/user/MainDashboard";
+import ScheduleAppointment from "./features/user/ScheduleAppointment";
+import MyAppointments from "./features/user/MyAppointments";
+import SpecialtiesPage from "./features/admin/SpecialtiesPage";
+import AdminLayout from "./components/layout/AdminLayout";
+import DoctorsPage from "./features/admin/DoctorsPage";
+import ReportsPage from "./features/admin/ReportsPage";
+import AppointmentsPage from "./features/admin/AppointmentsPage";
 
 function App() {
   return (
@@ -29,18 +36,23 @@ function App() {
 
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<MainDashboard />} />
-              <Route
-                path="/agendar"
-                element={<div>Aquí irá tu código de Agendar Cita</div>}
-              />
-              <Route path="/citas" element={<div>Página de Mis Citas</div>} />
+              <Route path="/agendar" element={<ScheduleAppointment />} />
+              <Route path="/citas" element={<MyAppointments />} />
               <Route path="/perfil" element={<div>Página de Perfil</div>} />
-              <Route path="/ayuda" element={<div>Página de Ayuda</div>} />
               <Route path="*" element={<div>404 Not Found</div>} />
+            </Route>
+
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route path="/admin/specialties" element={<SpecialtiesPage />} />
+              <Route path="/admin/doctors" element={<DoctorsPage />} />
+              <Route
+                path="/admin/appointments"
+                element={<AppointmentsPage />}
+              />
+              <Route path="/admin/reports" element={<ReportsPage />} />
             </Route>
           </Routes>
         </main>
-
         <Footer />
       </div>
     </Router>
