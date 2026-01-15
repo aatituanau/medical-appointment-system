@@ -4,7 +4,7 @@ import {Link, useNavigate} from "react-router-dom";
 import logoH from "../../assets/logoH.png";
 import Hosp from "../../assets/Hosp.jpg";
 import {auth, db} from "../../firebase/config";
-import {createUserWithEmailAndPassword} from "firebase/auth";
+import {createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
 import {doc, setDoc} from "firebase/firestore";
 import Footer from "../../components/layout/Footer";
 
@@ -26,11 +26,6 @@ const RegisterCard = () => {
       setLoading(false);
       return;
     }
-    if (!fullname) {
-      alert("Por favor, ingresa tu nombre completo.");
-      setLoading(false);
-      return;
-    }
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -39,14 +34,21 @@ const RegisterCard = () => {
         password
       );
       const user = userCredential.user;
+
+      await updateProfile(user, {displayName: fullname});
+
+      const role = email.endsWith("@uce.edu.ec") ? "student" : "user";
+
       await setDoc(doc(db, "users", user.uid), {
         fullname: fullname,
         email: email,
-        role: "student",
+        role: role,
         createdAt: new Date(),
       });
 
-      navigate("/login", {state: {message: "¡Cuenta creada exitosamente!"}});
+      console.log("Usuario registrado con rol:", role);
+
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error completo:", error);
       setLoading(false);
@@ -61,7 +63,7 @@ const RegisterCard = () => {
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)] bg-slate-50">
       <div className="flex-grow flex items-center justify-center p-6">
-        <div className="w-full max-w-[1100px] bg-white dark:bg-[#1a2632] rounded-[2.5rem] shadow-2xl shadow-blue-900/10 border border-white overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        <div className="w-full max-w-[1100px] bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden flex flex-col md:flex-row min-h-[600px]">
           <div className="relative w-full md:w-5/12 hidden md:flex flex-col justify-center items-center p-12 text-center group overflow-hidden">
             <div className="absolute inset-0 bg-[#137fec]/85 mix-blend-multiply z-10"></div>
             <img
@@ -74,11 +76,11 @@ const RegisterCard = () => {
                 <img src={logoH} alt="Logo Hospital" className="h-14 w-auto" />
               </div>
               <h3 className="text-3xl font-black leading-tight tracking-tight">
-                Salud universitaria a tu alcance
+                Bienvenido al Hospital del Día UCE
               </h3>
               <p className="text-white/90 text-base font-light leading-relaxed">
-                Gestiona tus citas, revisa tu historial médico y accede a los
-                servicios de bienestar universitario desde cualquier lugar.
+                Regístrate para acceder a citas médicas gratuitas (estudiantes)
+                o servicios externos.
               </p>
             </div>
           </div>
@@ -90,7 +92,7 @@ const RegisterCard = () => {
                   Crear cuenta
                 </h1>
                 <p className="text-slate-500 text-sm font-medium">
-                  Ingresa tus datos para registrarte en el portal.
+                  Usa tu correo institucional para acceder a beneficios.
                 </p>
               </div>
 
@@ -108,7 +110,7 @@ const RegisterCard = () => {
                   label="Correo Electrónico"
                   icon="school"
                   type="email"
-                  placeholder="estudiante@uce.edu.ec"
+                  placeholder="juan.perez@uce.edu.ec"
                   id="email"
                   required
                 />
@@ -137,24 +139,22 @@ const RegisterCard = () => {
                     required
                     type="checkbox"
                     id="terms"
-                    className="mt-1 size-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+                    className="mt-1 size-4 rounded border-slate-300 text-primary"
                   />
                   <label
                     htmlFor="terms"
                     className="text-xs font-medium text-slate-500 leading-tight"
                   >
-                    Acepto los Términos y Condiciones .
+                    Acepto los términos y condiciones del sistema médico.
                   </label>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="mt-4 w-full h-12 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2"
+                  className="mt-4 w-full h-12 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center"
                 >
-                  <span>
-                    {loading ? "Creando cuenta..." : "Crear mi cuenta"}
-                  </span>
+                  <span>{loading ? "Registrando..." : "Crear mi cuenta"}</span>
                 </button>
               </form>
 
