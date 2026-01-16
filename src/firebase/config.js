@@ -3,6 +3,7 @@ import {initializeApp} from "firebase/app";
 import {getAnalytics} from "firebase/analytics";
 import {getAuth} from "firebase/auth";
 import {getFirestore} from "firebase/firestore";
+import {getDatabase} from "firebase/database";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,4 +21,5 @@ const analytics = getAnalytics(app);
 //Exports
 export const auth = getAuth(app); // Login/Registro
 export const db = getFirestore(app);
+export const rtdb = getDatabase(app);
 export default app;
