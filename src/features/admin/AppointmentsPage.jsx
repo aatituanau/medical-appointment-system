@@ -1,116 +1,163 @@
-import React from "react";
-import Calendar from "../../components/ui/Calendar";
+import React, {useState} from "react";
+import {useDoctors} from "../../hooks/useMedicalData";
+import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 
 const AppointmentsPage = () => {
-  return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">
-            Schedule Command Center
-          </h1>
-          <p className="text-slate-500 text-sm font-medium">
-            Manage medical staff availability and shifts.
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <button className="px-6 py-3 rounded-2xl bg-white border border-slate-100 text-slate-600 font-black text-xs hover:bg-slate-50 transition-all">
-            Discard
-          </button>
-          <button className="px-6 py-3 rounded-2xl bg-[#137fec] text-white font-black text-xs shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
-            Publish Schedule
-          </button>
-        </div>
+  const {data: doctors, isLoading} = useDoctors();
+  const [selectedDoc, setSelectedDoc] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+
+  // Horas sugeridas para el Hospital del Día
+  const slots = [
+    "08:00",
+    "08:30",
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "13:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="p-20 text-center flex flex-col items-center justify-center gap-4">
+        <div className="animate-spin size-10 border-4 border-[#137fec] border-t-transparent rounded-full"></div>
+        <p className="font-black text-slate-400 uppercase tracking-widest text-[10px]">
+          Cargando Agenda Central...
+        </p>
       </div>
+    );
+  }
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
-              Select Professional
-            </h3>
-            <div className="relative mb-4">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
-                search
-              </span>
-              <input
-                type="text"
-                placeholder="Search doctor..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs outline-none"
-              />
-            </div>
-            <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-center gap-3">
-              <img
-                src="https://i.pravatar.cc/150?u=9"
-                className="size-10 rounded-full"
-                alt=""
-              />
-              <div>
-                <p className="text-sm font-black text-slate-800">
-                  Dra. Elena Rodriguez
+  return (
+    <div className="space-y-6">
+      <AdminSearchHeader
+        title="Gestión de Citas y Horarios"
+        btnText="Cargar Plantilla"
+        placeholder="Buscar doctor..."
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* LISTA DE DOCTORES (Izquierda) */}
+        <div className="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm h-fit">
+          <h3 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">
+            Doctores Disponibles
+          </h3>
+          <div className="space-y-2">
+            {doctors?.map((doc) => (
+              <button
+                key={doc.id}
+                onClick={() => setSelectedDoc(doc)}
+                className={`w-full text-left p-4 rounded-2xl transition-all ${
+                  selectedDoc?.id === doc.id
+                    ? "bg-[#137fec] text-white shadow-lg shadow-blue-200"
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                <p className="text-xs font-black uppercase leading-tight">
+                  {doc.name}
                 </p>
-                <p className="text-[10px] font-bold text-[#137fec] bg-blue-100/50 px-2 py-0.5 rounded-md inline-block">
-                  Cardiology
+                <p
+                  className={`text-[9px] font-bold ${
+                    selectedDoc?.id === doc.id
+                      ? "text-blue-100"
+                      : "text-slate-400"
+                  }`}
+                >
+                  {doc.specialty}
                 </p>
-              </div>
-              <button className="ml-auto text-slate-400">
-                <span className="material-symbols-outlined text-sm">edit</span>
               </button>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <Calendar onDateChange={() => {}} />
+            ))}
           </div>
         </div>
 
-        <div className="lg:col-span-8 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-sm font-black text-slate-800">
-              Recurrent Shift Summary
-            </h3>
-            <button className="bg-[#137fec] text-white px-4 py-2 rounded-xl font-black text-[10px] flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">add</span> Add
-              Quick Shift
-            </button>
-          </div>
+        {/* PANEL DE HORARIOS (Derecha) */}
+        <div className="md:col-span-3 bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
+          {selectedDoc ? (
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-50 pb-6">
+                <div>
+                  <h2 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
+                    Panel de Disponibilidad
+                  </h2>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                    Doctor: {selectedDoc.name}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <span className="text-[10px] font-black text-slate-400 uppercase">
+                    Fecha:
+                  </span>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="px-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-black text-slate-600 outline-none ring-1 ring-slate-100 focus:ring-[#137fec]"
+                  />
+                </div>
+              </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[11px]">
-              <thead>
-                <tr className="text-slate-400 font-black uppercase tracking-tighter border-b border-slate-50">
-                  <th className="pb-4">Status</th>
-                  <th className="pb-4">Start Date</th>
-                  <th className="pb-4">End Date</th>
-                  <th className="pb-4">Days</th>
-                  <th className="pb-4">Hours</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {[1, 2, 3, 4, 5].map((_, i) => (
-                  <tr key={i} className="group">
-                    <td className="py-4">
-                      <span className="bg-green-50 text-green-600 px-2 py-1 rounded-md font-bold">
-                        Active
+              {/* GRID DE SLOTS */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {slots.map((time) => (
+                  <button
+                    key={time}
+                    className="p-6 rounded-[2rem] border border-slate-100 bg-slate-50 hover:border-[#137fec] transition-all text-center group relative overflow-hidden"
+                  >
+                    <span className="text-lg font-black text-slate-700 group-hover:text-[#137fec] transition-colors">
+                      {time}
+                    </span>
+                    <div className="flex items-center justify-center gap-1.5 mt-2">
+                      <div className="size-1.5 rounded-full bg-green-500"></div>
+                      <span className="text-[9px] font-black text-slate-400 uppercase">
+                        Disponible
                       </span>
-                    </td>
-                    <td className="py-4 font-bold text-slate-600 italic">
-                      10/01/2023
-                    </td>
-                    <td className="py-4 font-bold text-slate-400 italic">
-                      -- / -- / --
-                    </td>
-                    <td className="py-4 font-black text-slate-700 uppercase">
-                      Mon, Wed, Fri
-                    </td>
-                    <td className="py-4 font-bold text-slate-600 tracking-tighter">
-                      08:00 - 12:00
-                    </td>
-                  </tr>
+                    </div>
+                  </button>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+
+              {/* LEYENDA */}
+              <div className="flex gap-4 pt-4 border-t border-slate-50">
+                <div className="flex items-center gap-2">
+                  <div className="size-2 rounded-full bg-green-500"></div>
+                  <span className="text-[9px] font-black text-slate-400 uppercase">
+                    Disponible
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="size-2 rounded-full bg-red-500"></div>
+                  <span className="text-[9px] font-black text-slate-400 uppercase">
+                    Ocupado
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="size-2 rounded-full bg-slate-300"></div>
+                  <span className="text-[9px] font-black text-slate-400 uppercase">
+                    Bloqueado
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-slate-300 py-20 animate-pulse">
+              <span className="material-icons-outlined text-7xl mb-4 text-slate-100">
+                calendar_month
+              </span>
+              <p className="text-xs font-black uppercase tracking-widest">
+                Selecciona un médico para gestionar su agenda
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
