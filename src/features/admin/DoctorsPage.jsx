@@ -1,128 +1,181 @@
-import React from "react";
+import React, {useState} from "react";
+import {useDoctors, useSpecialties} from "../../hooks/useMedicalData";
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
+import MedicalModal from "../../components/ui-admin/MedicalModal";
+import MedicalForm from "../../components/ui-admin/MedicalForm";
 
 const DoctorsPage = () => {
-  const doctors = [
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentDoctor, setCurrentDoctor] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    specialty: "",
+    active: true,
+  });
+
+  const {
+    data: doctors,
+    isLoading,
+    addItem,
+    updateItem,
+    deleteItem,
+  } = useDoctors();
+
+  const {data: specialties, isLoading: isLoadSpecs} = useSpecialties();
+
+  if (isLoading || isLoadSpecs) {
+    return (
+      <div className="p-20 text-center flex flex-col items-center gap-4">
+        <div className="animate-spin size-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <p className="font-black text-slate-400 uppercase tracking-widest text-xs">
+          Sincronizando cuerpo médico...
+        </p>
+      </div>
+    );
+  }
+
+  const doctorFields = [
     {
-      id: 1,
-      name: "Dr. Maria Gonzalez",
-      lic: "MED-2023-884",
-      specialty: "General Medicine",
-      email: "maria.g@uce.edu.ec",
-      status: "Active",
-      img: "https://i.pravatar.cc/150?u=1",
+      name: "name",
+      label: "Nombre Completo",
+      placeholder: "Ej: Dr. Alex Tituana",
+      required: true,
     },
     {
-      id: 2,
-      name: "Dr. Juan Perez",
-      lic: "CAR-2021-102",
-      specialty: "Cardiology",
-      email: "juan.p@uce.edu.ec",
-      status: "On Leave",
-      img: "https://i.pravatar.cc/150?u=2",
+      name: "email",
+      label: "Correo Institucional",
+      type: "email",
+      placeholder: "usuario@uce.edu.ec",
+      required: true,
     },
     {
-      id: 3,
-      name: "Dra. Ana Torres",
-      lic: "PED-2022-331",
-      specialty: "Pediatrics",
-      email: "ana.t@uce.edu.ec",
-      status: "Active",
-      img: "https://i.pravatar.cc/150?u=3",
+      name: "specialty",
+      label: "Asignar Especialidad",
+      type: "select",
+      placeholder: "Seleccione una área...",
+      options: specialties
+        ?.filter((s) => s.active)
+        .map((s) => ({value: s.name, label: s.name})),
+      required: true,
     },
   ];
 
+  const handleOpenModal = (doctor = null) => {
+    if (doctor) {
+      setCurrentDoctor(doctor);
+      setFormData({
+        name: doctor.name,
+        email: doctor.email,
+        specialty: doctor.specialty,
+        active: doctor.active,
+      });
+    } else {
+      setCurrentDoctor(null);
+      setFormData({name: "", email: "", specialty: "", active: true});
+    }
+    setIsModalOpen(true);
+  };
+
+  const filteredDoctors = doctors?.filter(
+    (doc) =>
+      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-black text-slate-800 tracking-tight">
-          Doctor Management
-        </h1>
-        <p className="text-sm text-slate-500 font-medium">
-          Manage and assign medical staff to specialties.
-        </p>
-      </div>
-
       <AdminSearchHeader
-        placeholder="Search by name, ID or license..."
-        btnText="Add New Doctor"
+        placeholder="Buscar médico..."
+        btnText="Nuevo Médico"
+        onAddClick={() => handleOpenModal()}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
       />
+
+      <MedicalModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={currentDoctor ? "Editar Médico" : "Registrar Médico"}
+        onSubmit={() => {
+          currentDoctor
+            ? updateItem({id: currentDoctor.id, ...formData})
+            : addItem(formData);
+          setIsModalOpen(false);
+        }}
+      >
+        <MedicalForm
+          fields={doctorFields}
+          formData={formData}
+          onChange={(name, value) => setFormData({...formData, [name]: value})}
+        />
+        <div className="mt-4 flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Estado Activo
+          </span>
+          <input
+            type="checkbox"
+            className="size-5 accent-blue-600 cursor-pointer"
+            checked={formData.active}
+            onChange={(e) =>
+              setFormData({...formData, active: e.target.checked})
+            }
+          />
+        </div>
+      </MedicalModal>
 
       <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-slate-50/50 border-b border-slate-50">
-            <tr>
-              <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Doctor Name
-              </th>
-              <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
-                Specialty
-              </th>
-              <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Contact
-              </th>
-              <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
-                Status
-              </th>
-              <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                Actions
-              </th>
+          <thead>
+            <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <th className="px-8 py-5">Médico</th>
+              <th className="px-8 py-5">Especialidad</th>
+              <th className="px-8 py-5">Estado</th>
+              <th className="px-8 py-5 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {doctors.map((doc) => (
+            {filteredDoctors?.map((doc) => (
               <tr
                 key={doc.id}
-                className="hover:bg-slate-50/30 transition-colors"
+                className="hover:bg-slate-50/50 transition-colors group"
               >
-                <td className="px-8 py-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={doc.img}
-                      className="size-10 rounded-full border-2 border-white shadow-sm"
-                      alt=""
-                    />
-                    <div>
-                      <p className="text-sm font-bold text-slate-700">
-                        {doc.name}
-                      </p>
-                      <p className="text-[10px] text-slate-400 font-medium">
-                        Lic: {doc.lic}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <span className="px-3 py-1 bg-blue-50 text-[#137fec] text-[10px] font-black rounded-lg border border-blue-100">
-                    {doc.specialty}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <p className="text-[11px] font-bold text-slate-600">
+                <td className="px-8 py-5 text-sm font-black text-slate-800 uppercase">
+                  {doc.name}
+                  <p className="text-[10px] text-slate-400 font-bold normal-case">
                     {doc.email}
                   </p>
                 </td>
-                <td className="px-6 py-4 text-center">
-                  <span
-                    className={`px-3 py-1 rounded-full text-[10px] font-black ${
-                      doc.status === "Active"
-                        ? "bg-green-50 text-green-600"
-                        : "bg-orange-50 text-orange-600"
-                    }`}
-                  >
-                    ● {doc.status}
+                <td className="px-8 py-5">
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase">
+                    {doc.specialty}
                   </span>
                 </td>
-                <td className="px-8 py-4 text-right space-x-1">
-                  <button className="p-2 text-slate-300 hover:text-[#137fec]">
-                    <span className="material-symbols-outlined text-lg">
-                      edit
+                <td className="px-8 py-5">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`size-1.5 rounded-full ${
+                        doc.active ? "bg-green-500" : "bg-red-500"
+                      }`}
+                    ></div>
+                    <span className="text-xs font-bold text-slate-600">
+                      {doc.active ? "ACTIVO" : "INACTIVO"}
                     </span>
+                  </div>
+                </td>
+                <td className="px-8 py-5 text-right space-x-2">
+                  <button
+                    onClick={() => handleOpenModal(doc)}
+                    className="text-slate-300 hover:text-blue-500 transition-colors"
+                  >
+                    <span className="material-icons-outlined">edit</span>
                   </button>
-                  <button className="p-2 text-slate-300 hover:text-red-500">
-                    <span className="material-symbols-outlined text-lg">
-                      delete
-                    </span>
+                  <button
+                    onClick={() => confirm("¿Borrar?") && deleteItem(doc.id)}
+                    className="text-slate-300 hover:text-red-500 transition-colors"
+                  >
+                    <span className="material-icons-outlined">delete</span>
                   </button>
                 </td>
               </tr>
