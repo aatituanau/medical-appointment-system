@@ -6,7 +6,7 @@ const AppointmentsPage = () => {
   const {data: doctors, isLoading} = useDoctors();
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
 
   // Horas sugeridas para el Hospital del Día
@@ -47,7 +47,6 @@ const AppointmentsPage = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* LISTA DE DOCTORES (Izquierda) */}
         <div className="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm h-fit">
           <h3 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">
             Doctores Disponibles
@@ -80,7 +79,6 @@ const AppointmentsPage = () => {
           </div>
         </div>
 
-        {/* PANEL DE HORARIOS (Derecha) */}
         <div className="md:col-span-3 bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
           {selectedDoc ? (
             <div className="space-y-6">
@@ -126,7 +124,7 @@ const AppointmentsPage = () => {
                 ))}
               </div>
 
-              {/* LEYENDA */}
+              {/* Legend */}
               <div className="flex gap-4 pt-4 border-t border-slate-50">
                 <div className="flex items-center gap-2">
                   <div className="size-2 rounded-full bg-green-500"></div>
@@ -138,12 +136,6 @@ const AppointmentsPage = () => {
                   <div className="size-2 rounded-full bg-red-500"></div>
                   <span className="text-[9px] font-black text-slate-400 uppercase">
                     Ocupado
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-slate-300"></div>
-                  <span className="text-[9px] font-black text-slate-400 uppercase">
-                    Bloqueado
                   </span>
                 </div>
               </div>

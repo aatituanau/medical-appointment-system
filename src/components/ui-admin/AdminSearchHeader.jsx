@@ -21,17 +21,7 @@ const AdminSearchHeader = ({
       />
     </div>
     <div className="flex items-center gap-3">
-      <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100">
-        <button className="px-4 py-2 rounded-lg text-[10px] font-black bg-white shadow-sm text-[#137fec]">
-          All
-        </button>
-        <button className="px-4 py-2 rounded-lg text-[10px] font-black text-slate-400">
-          Active
-        </button>
-        <button className="px-4 py-2 rounded-lg text-[10px] font-black text-slate-400">
-          Inactive
-        </button>
-      </div>
+      <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100"></div>
 
       <button
         onClick={onAddClick}
