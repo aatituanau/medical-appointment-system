@@ -18,7 +18,7 @@ const StatusAlert = ({type, message, onClose}) => {
         </div>
         <div className="flex-1">
           <h5 className="text-sm font-black text-slate-800">
-            {isError ? "Horario no disponible" : "Cita Confirmada"}
+            {isError ? "Atención" : "Operación Exitosa"}
           </h5>
           <p className="text-[11px] text-slate-500 leading-relaxed mt-1">
             {message}
