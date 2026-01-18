@@ -22,7 +22,14 @@ const Navbar = () => {
         <div
           className={`flex items-center gap-3 ${isAuthPage ? "mx-auto" : ""}`}
         >
-          <img src={logoH} alt="Logo" className="h-9 w-auto" />
+          <div className="h-10 w-10 flex items-center justify-center rounded-full bg-slate-50 border border-slate-100 overflow-hidden">
+            <img
+              src={logoH}
+              alt="Logo"
+              className="w-full h-full object-contain scale-125"
+            />
+          </div>
+
           <div className="border-l border-slate-200 pl-3">
             <h2 className="text-sm font-black text-slate-800 leading-tight">
               HOSPITAL DEL DÍA
@@ -43,11 +50,11 @@ const Navbar = () => {
                 {userData?.role === "admin"
                   ? "Administrador"
                   : userData?.role === "student"
-                  ? "Estudiante UCE"
-                  : "Paciente Externo"}
+                    ? "Estudiante UCE"
+                    : "Paciente Externo"}
               </p>
             </div>
-            <div className="h-9 w-9 rounded-xl bg-slate-800 flex items-center justify-center text-white font-bold text-xs">
+            <div className="h-9 w-9 rounded-xl bg-slate-800 flex items-center justify-center text-white font-bold text-xs shadow-sm">
               {getInitials(userData?.fullname || user.displayName)}
             </div>
           </div>
