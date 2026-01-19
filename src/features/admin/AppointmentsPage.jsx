@@ -9,6 +9,8 @@ import {ref, set} from "firebase/database";
 import {rtdb} from "../../firebase/config";
 
 const AppointmentsPage = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+
   const {data: doctors, isLoading: loadingDocs} = useDoctors();
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [selectedDate, setSelectedDate] = useState(
@@ -21,6 +23,13 @@ const AppointmentsPage = () => {
   );
 
   const {mutate: saveAvailability} = useManageAvailability();
+
+  // Filter doctors based on search term
+  const filteredDoctors = doctors?.filter(
+    (doc) =>
+      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.specialty.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   const handleToggleSlot = async (time) => {
     if (!selectedDoc) return;
@@ -102,16 +111,21 @@ const AppointmentsPage = () => {
 
   return (
     <div className="space-y-4 md:space-y-6 p-2 md:p-0">
-      <AdminSearchHeader title="Gestión de Citas" />
+      <AdminSearchHeader
+        placeholder="Buscar médico por nombre o especialidad..."
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        btnText="Buscar"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="lg:col-span-1 bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 p-4 md:p-6 shadow-sm h-auto lg:h-[750px] flex flex-col">
+        <div className="lg:col-span-1 bg-white rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 p-4 md:p-6 shadow-sm h-auto lg:h-[750px] flex flex-col overflow-hidden">
           <h3 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center lg:text-left">
-            Médicos UCE
+            Médicos Encontrados ({filteredDoctors?.length})
           </h3>
 
           <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto pb-2 lg:pb-0 pr-0 lg:pr-2 custom-scrollbar">
-            {doctors?.map((doc) => (
+            {filteredDoctors?.map((doc) => (
               <button
                 key={doc.id}
                 onClick={() => setSelectedDoc(doc)}
@@ -127,16 +141,14 @@ const AppointmentsPage = () => {
                 <p className="text-[9px] opacity-80 font-bold truncate">
                   {doc.specialty}
                 </p>
-                <div className="flex items-center gap-1 mt-1 opacity-60">
-                  <span className="material-symbols-outlined text-[10px]">
-                    meeting_room
-                  </span>
-                  <p className="text-[8px] md:text-[9px] font-bold">
-                    Cons. {doc.office}
-                  </p>
-                </div>
               </button>
             ))}
+
+            {filteredDoctors?.length === 0 && (
+              <p className="text-[10px] text-slate-400 text-center py-10 font-bold">
+                No se encontraron médicos.
+              </p>
+            )}
           </div>
         </div>
 
@@ -213,14 +225,6 @@ const AppointmentsPage = () => {
                                 : "Habilitar"}
                           </span>
                         </div>
-
-                        {!isTaken && isCreated && (
-                          <div className="hidden md:block absolute top-2 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="text-[7px] font-black text-red-500">
-                              QUITAR
-                            </span>
-                          </div>
-                        )}
                       </button>
                     );
                   })}
@@ -233,7 +237,7 @@ const AppointmentsPage = () => {
                 person_search
               </span>
               <p className="text-center px-6">
-                Selecciona un médico para gestionar su agenda
+                Busca y selecciona un médico para gestionar su agenda
               </p>
             </div>
           )}
