@@ -27,9 +27,9 @@ const DoctorsPage = () => {
 
   if (isLoading || isLoadSpecs) {
     return (
-      <div className="p-20 text-center flex flex-col items-center gap-4">
+      <div className="p-10 md:p-20 text-center flex flex-col items-center gap-4">
         <div className="animate-spin size-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        <p className="font-black text-slate-400 uppercase tracking-widest text-xs">
+        <p className="font-black text-slate-400 uppercase tracking-widest text-[10px] md:text-xs">
           Sincronizando cuerpo médico...
         </p>
       </div>
@@ -81,11 +81,11 @@ const DoctorsPage = () => {
   const filteredDoctors = doctors?.filter(
     (doc) =>
       doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.specialty.toLowerCase().includes(searchTerm.toLowerCase())
+      doc.specialty.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 p-2 md:p-0">
       <AdminSearchHeader
         placeholder="Buscar médico..."
         btnText="Nuevo Médico"
@@ -105,83 +105,112 @@ const DoctorsPage = () => {
           setIsModalOpen(false);
         }}
       >
-        <MedicalForm
-          fields={doctorFields}
-          formData={formData}
-          onChange={(name, value) => setFormData({...formData, [name]: value})}
-        />
-        <div className="mt-4 flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Estado Activo
-          </span>
-          <input
-            type="checkbox"
-            className="size-5 accent-blue-600 cursor-pointer"
-            checked={formData.active}
-            onChange={(e) =>
-              setFormData({...formData, active: e.target.checked})
+        <div className="max-h-[70vh] overflow-y-auto px-1">
+          <MedicalForm
+            fields={doctorFields}
+            formData={formData}
+            onChange={(name, value) =>
+              setFormData({...formData, [name]: value})
             }
           />
+          <div className="mt-4 flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              Estado Activo
+            </span>
+            <input
+              type="checkbox"
+              className="size-5 accent-blue-600 cursor-pointer"
+              checked={formData.active}
+              onChange={(e) =>
+                setFormData({...formData, active: e.target.checked})
+              }
+            />
+          </div>
         </div>
       </MedicalModal>
 
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              <th className="px-8 py-5">Médico</th>
-              <th className="px-8 py-5">Especialidad</th>
-              <th className="px-8 py-5">Estado</th>
-              <th className="px-8 py-5 text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {filteredDoctors?.map((doc) => (
-              <tr
-                key={doc.id}
-                className="hover:bg-slate-50/50 transition-colors group"
-              >
-                <td className="px-8 py-5 text-sm font-black text-slate-800 uppercase">
-                  {doc.name}
-                  <p className="text-[10px] text-slate-400 font-bold normal-case">
-                    {doc.email}
-                  </p>
-                </td>
-                <td className="px-8 py-5">
-                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase">
-                    {doc.specialty}
-                  </span>
-                </td>
-                <td className="px-8 py-5">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`size-1.5 rounded-full ${
-                        doc.active ? "bg-green-500" : "bg-red-500"
-                      }`}
-                    ></div>
-                    <span className="text-xs font-bold text-slate-600">
-                      {doc.active ? "ACTIVO" : "INACTIVO"}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-8 py-5 text-right space-x-2">
-                  <button
-                    onClick={() => handleOpenModal(doc)}
-                    className="text-slate-300 hover:text-blue-500 transition-colors"
-                  >
-                    <span className="material-icons-outlined">edit</span>
-                  </button>
-                  <button
-                    onClick={() => confirm("¿Borrar?") && deleteItem(doc.id)}
-                    className="text-slate-300 hover:text-red-500 transition-colors"
-                  >
-                    <span className="material-icons-outlined">delete</span>
-                  </button>
-                </td>
+      <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[600px] md:min-w-full">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <th className="px-4 md:px-8 py-5">Médico</th>
+                <th className="px-4 md:px-8 py-5">Especialidad</th>
+                <th className="px-4 md:px-8 py-5 hidden sm:table-cell">
+                  Estado
+                </th>
+                <th className="px-4 md:px-8 py-5 text-right">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {filteredDoctors?.map((doc) => (
+                <tr
+                  key={doc.id}
+                  className="hover:bg-slate-50/50 transition-colors group"
+                >
+                  <td className="px-4 md:px-8 py-5">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-black text-slate-800 uppercase leading-tight">
+                        {doc.name}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-bold normal-case md:mt-1">
+                        {doc.email}
+                      </span>
+
+                      <div className="flex sm:hidden items-center gap-1.5 mt-2">
+                        <div
+                          className={`size-1.5 rounded-full ${doc.active ? "bg-green-500" : "bg-red-500"}`}
+                        ></div>
+                        <span className="text-[9px] font-black text-slate-500 uppercase">
+                          {doc.active ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 md:px-8 py-5">
+                    <span className="text-[9px] md:text-[10px] font-bold text-blue-600 bg-blue-50 px-2 md:px-3 py-1 rounded-full uppercase whitespace-nowrap">
+                      {doc.specialty}
+                    </span>
+                  </td>
+                  <td className="px-4 md:px-8 py-5 hidden sm:table-cell">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`size-1.5 rounded-full ${
+                          doc.active ? "bg-green-500" : "bg-red-500"
+                        }`}
+                      ></div>
+                      <span className="text-[10px] font-bold text-slate-600 uppercase">
+                        {doc.active ? "ACTIVO" : "INACTIVO"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 md:px-8 py-5 text-right whitespace-nowrap">
+                    <div className="flex justify-end gap-1 md:gap-2">
+                      <button
+                        onClick={() => handleOpenModal(doc)}
+                        className="p-2 text-slate-300 hover:text-blue-500 transition-colors"
+                      >
+                        <span className="material-icons-outlined text-xl">
+                          edit
+                        </span>
+                      </button>
+                      <button
+                        onClick={() =>
+                          confirm("¿Borrar?") && deleteItem(doc.id)
+                        }
+                        className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                      >
+                        <span className="material-icons-outlined text-xl">
+                          delete
+                        </span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

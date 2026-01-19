@@ -165,7 +165,7 @@ const SpecialtiesPage = () => {
                       <span className="text-sm font-black text-slate-800 uppercase italic leading-tight">
                         {spec.name}
                       </span>
-                      {/* Descripción corta visible solo en móvil/tablet debajo del nombre */}
+
                       <span className="lg:hidden text-[10px] text-slate-400 font-medium truncate max-w-[150px] mt-1">
                         {spec.description || "Sin descripción"}
                       </span>
