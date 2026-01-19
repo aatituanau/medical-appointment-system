@@ -48,10 +48,6 @@ const ReportsPage = () => {
             Overview of scheduled appointments for today.
           </p>
         </div>
-        <button className="bg-[#137fec] text-white px-6 py-3 rounded-2xl font-black text-xs flex items-center gap-2 shadow-lg shadow-blue-500/20">
-          <span className="material-symbols-outlined text-sm">add</span> New
-          Appointment
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
