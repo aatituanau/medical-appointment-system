@@ -1,34 +1,88 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
+import {useSearchParams, useNavigate} from "react-router-dom";
 import StatusAlert from "../../components/ui/StatusAlert";
 import Calendar from "../../components/ui/Calendar";
 import DoctorSelectionCard from "../../components/ui/DoctorSelectionCard";
 import AppointmentSummary from "../../components/ui/AppointmentSummary";
 import TimeSlotGrid from "../../components/ui/TimeSlotGrid";
 
+// Importamos tus hooks de conexión real
+import {
+  useDoctors,
+  useSpecialties,
+  useRealtimeSlots,
+  useBookSlot,
+} from "../../hooks/useMedicalData";
+import {useAuth} from "../../context/AuthContext";
+
 const ScheduleAppointment = () => {
-  const [specialty, setSpecialty] = useState("Medicina General");
-  const [doctor, setDoctor] = useState("Dr. Juan Pérez");
-  const [selectedDate, setSelectedDate] = useState("9 de Octubre");
-  const [selectedTime, setSelectedTime] = useState("10:30 AM");
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const {user} = useAuth();
+
+  // Estados originales conectados a Firebase
+  const [specialty, setSpecialty] = useState(
+    searchParams.get("specialty") || "Medicina General",
+  );
+  const [selectedDocObj, setSelectedDocObj] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [selectedTime, setSelectedTime] = useState("");
   const [alert, setAlert] = useState({show: false, type: "", msg: ""});
 
-  const morningSlots = [
-    "08:00 AM",
-    "08:30 AM",
-    "09:00 AM",
-    "09:30 AM",
-    "10:00 AM",
-    "10:30 AM",
-  ];
-  const afternoonSlots = ["14:00 PM", "14:30 PM", "15:00 PM", "15:30 PM"];
+  // Carga de datos reales
+  const {data: specialties} = useSpecialties();
+  const {data: allDoctors} = useDoctors();
+  const {mutate: bookSlot, isLoading: isBooking} = useBookSlot();
 
-  const handleConfirm = () => {
-    setAlert({
-      show: true,
-      type: "error",
-      msg: `El horario de las ${selectedTime} acaba de ser reservado por otro estudiante.`,
-    });
-    setTimeout(() => setAlert({show: false}), 5000);
+  // Filtramos doctores por especialidad elegida
+  const filteredDoctors = allDoctors?.filter(
+    (d) => d.specialty === specialty && d.status === "active",
+  );
+
+  // Slots en tiempo real (lo que el admin habilitó)
+  const realtimeSlots = useRealtimeSlots(selectedDocObj?.id, selectedDate);
+
+  // Separar mañana y tarde para tus componentes originales
+  const morningSlots = realtimeSlots
+    ? Object.values(realtimeSlots)
+        .filter((s) => parseInt(s.time) < 13)
+        .map((s) => s.time)
+    : [];
+  const afternoonSlots = realtimeSlots
+    ? Object.values(realtimeSlots)
+        .filter((s) => parseInt(s.time) >= 13)
+        .map((s) => s.time)
+    : [];
+
+  const handleConfirm = async () => {
+    if (!selectedTime) return alert("Por favor, selecciona un horario");
+    if (!user) return alert("Debes iniciar sesión para agendar");
+
+    try {
+      await bookSlot({
+        doctorId: selectedDocObj.id,
+        date: selectedDate,
+        time: selectedTime.replace(":", ""),
+        studentId: user.uid,
+        studentName: user.displayName || "Estudiante UCE",
+      });
+
+      setAlert({
+        show: true,
+        type: "success",
+        msg: `¡Cita agendada con éxito para las ${selectedTime}!`,
+      });
+
+      setTimeout(() => navigate("/citas"), 2000);
+    } catch (error) {
+      setAlert({
+        show: true,
+        type: "error",
+        msg: error.message || "El horario ya fue reservado.",
+      });
+    }
   };
 
   return (
@@ -40,6 +94,7 @@ const ScheduleAppointment = () => {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* COLUMNA IZQUIERDA: DATOS Y CALENDARIO */}
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-3">
@@ -55,12 +110,20 @@ const ScheduleAppointment = () => {
                 </label>
                 <select
                   value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value)}
+                  onChange={(e) => {
+                    setSpecialty(e.target.value);
+                    setSelectedDocObj(null); // Reiniciar médico al cambiar área
+                  }}
                   className="w-full h-12 bg-slate-50 border border-slate-100 rounded-2xl px-4 text-sm outline-none focus:ring-2 focus:ring-[#137fec]/20"
                 >
-                  <option value="Medicina General">Medicina General</option>
-                  <option value="Odontología">Odontología</option>
-                  <option value="Psicología">Psicología</option>
+                  <option value="">Seleccione una especialidad</option>
+                  {specialties
+                    ?.filter((s) => s.active)
+                    .map((s) => (
+                      <option key={s.id} value={s.name}>
+                        {s.name}
+                      </option>
+                    ))}
                 </select>
               </div>
               <div className="space-y-2">
@@ -68,12 +131,21 @@ const ScheduleAppointment = () => {
                   Médico
                 </label>
                 <select
-                  value={doctor}
-                  onChange={(e) => setDoctor(e.target.value)}
+                  value={selectedDocObj?.name || ""}
+                  onChange={(e) => {
+                    const doc = filteredDoctors.find(
+                      (d) => d.name === e.target.value,
+                    );
+                    setSelectedDocObj(doc);
+                  }}
                   className="w-full h-12 bg-slate-50 border border-slate-100 rounded-2xl px-4 text-sm outline-none focus:ring-2 focus:ring-[#137fec]/20"
                 >
-                  <option value="Dr. Juan Pérez">Dr. Juan Pérez</option>
-                  <option value="Dra. Ana Mora">Dra. Ana Mora</option>
+                  <option value="">Seleccione un médico</option>
+                  {filteredDoctors?.map((d) => (
+                    <option key={d.id} value={d.name}>
+                      {d.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -87,16 +159,23 @@ const ScheduleAppointment = () => {
               Selecciona fecha
             </h3>
             <Calendar
-              onDateChange={(day) => setSelectedDate(`${day} de Octubre`)}
+              onDateChange={(date) => {
+                // date viene del componente como YYYY-MM-DD
+                setSelectedDate(date);
+              }}
             />
           </div>
         </div>
 
+        {/* COLUMNA DERECHA: DOCTOR, SLOTS Y RESUMEN */}
         <div className="lg:col-span-5 space-y-6">
           <DoctorSelectionCard
-            name={doctor}
+            name={selectedDocObj?.name || "Seleccione Médico"}
             specialty={specialty}
-            image="https://randomuser.me/api/portraits/men/1.jpg"
+            image={
+              selectedDocObj?.image ||
+              "https://randomuser.me/api/portraits/men/32.jpg"
+            }
           />
 
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8">
@@ -108,26 +187,41 @@ const ScheduleAppointment = () => {
                 Horarios Disponibles
               </span>
             </h3>
-            <TimeSlotGrid
-              label="Mañana"
-              slots={morningSlots}
-              selectedSlot={selectedTime}
-              onSelect={setSelectedTime}
-            />
-            <TimeSlotGrid
-              label="Tarde"
-              slots={afternoonSlots}
-              selectedSlot={selectedTime}
-              onSelect={setSelectedTime}
-            />
+
+            {realtimeSlots ? (
+              <>
+                <TimeSlotGrid
+                  label="Mañana"
+                  slots={morningSlots}
+                  selectedSlot={selectedTime}
+                  onSelect={setSelectedTime}
+                />
+                <TimeSlotGrid
+                  label="Tarde"
+                  slots={afternoonSlots}
+                  selectedSlot={selectedTime}
+                  onSelect={setSelectedTime}
+                />
+              </>
+            ) : (
+              <p className="text-center text-[10px] font-black text-slate-300 uppercase py-10">
+                No hay turnos disponibles para esta fecha
+              </p>
+            )}
           </div>
+
           <AppointmentSummary
             date={selectedDate}
-            time={selectedTime}
-            doctor={doctor}
-            location="Consultorio 304"
+            time={selectedTime || "--:--"}
+            doctor={selectedDocObj?.name || "Sin seleccionar"}
+            location={
+              selectedDocObj?.office
+                ? `Consultorio ${selectedDocObj.office}`
+                : "Por asignar"
+            }
             specialty={specialty}
             onConfirm={handleConfirm}
+            isLoading={isBooking}
           />
         </div>
       </div>
