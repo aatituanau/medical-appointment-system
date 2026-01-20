@@ -23,8 +23,8 @@ const ReportsPage = () => {
       id: "1712345678",
       doctor: "Dr. Roberto Gomez",
       spec: "General Medicine",
-      status: "Pending Check-in",
-      sColor: "text-orange-600 bg-orange-50",
+      status: "Confirmed",
+      sColor: "text-green-600 bg-green-50",
     },
     {
       time: "09:15 AM",
