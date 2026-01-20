@@ -2,8 +2,14 @@
 
 @import "tailwindcss";
 
+/* src/index.css */
 @theme {
-  --color-primary: #137fec;
-  --color-primary-dark: #0b5db0;
-  --font-display: "Lexend", sans-serif;
+  --color-primary: #003366;
+  --color-primary-dark: #002244;
+
+  --color-accent: #cc0000;
+  --color-accent-hover: #a30000;
+
+  --color-slate-custom: #64748b;
+  --color-success: #059669;
 }

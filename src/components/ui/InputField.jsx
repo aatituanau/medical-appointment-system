@@ -1,47 +1,40 @@
-import React, {useState} from "react";
+import React, {forwardRef} from "react";
 
-const InputField = ({label, icon, type, placeholder, id, name}) => {
-  const [show, setShow] = useState(false);
-  const isPassword = type === "password";
-
-  return (
-    <div className="flex flex-col gap-1.5 mb-2">
-      <label
-        className="text-slate-700 text-xs font-bold uppercase tracking-wider"
-        htmlFor={id}
-      >
-        {label}
-      </label>
-      <div className="relative flex items-center">
-        {icon && (
-          <div className="absolute left-3 text-slate-400">
-            <span className="material-symbols-outlined text-[18px]">
+const InputField = forwardRef(
+  ({label, icon, type, id, placeholder, forgotPassword, ...props}, ref) => {
+    return (
+      <div className="flex flex-col gap-2 w-full text-left">
+        <div className="flex justify-between items-center ml-1">
+          <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">
+            {label}
+          </label>
+          {forgotPassword && (
+            <button
+              type="button"
+              className="text-[10px] text-blue-600 font-bold hover:underline"
+            >
+              ¿Olvidaste tu clave?
+            </button>
+          )}
+        </div>
+        <div className="relative">
+          {icon && (
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">
               {icon}
             </span>
-          </div>
-        )}
-        <input
-          id={id}
-          name={id}
-          type={isPassword ? (show ? "text" : "password") : type}
-          placeholder={placeholder}
-          required
-          className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#137fec]/20 focus:border-[#137fec] transition-all"
-        />
-        {isPassword && (
-          <button
-            type="button"
-            onClick={() => setShow(!show)}
-            className="absolute right-3 text-slate-400 hover:text-slate-600"
-          >
-            <span className="material-symbols-outlined text-[18px]">
-              {show ? "visibility_off" : "visibility"}
-            </span>
-          </button>
-        )}
+          )}
+          <input
+            {...props}
+            ref={ref}
+            type={type}
+            id={id}
+            placeholder={placeholder}
+            className={`w-full h-12 ${icon ? "pl-12" : "px-5"} pr-5 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-slate-800 transition-all placeholder:text-slate-300 shadow-sm`}
+          />
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  },
+);
 
 export default InputField;

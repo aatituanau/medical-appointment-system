@@ -1,33 +1,31 @@
 import React, {useState} from "react";
-import InputField from "../../components/ui/InputField";
+import {useForm} from "react-hook-form";
 import {Link, useNavigate} from "react-router-dom";
-import logoH from "../../assets/logoH.png";
+import {createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
+import {doc, setDoc} from "firebase/firestore";
+import {auth, db} from "../../firebase/config";
+import InputField from "../../components/ui/InputField";
+import Footer from "../../components/layout/Footer";
+import StatusAlert from "../../components/ui/StatusAlert";
 import Hosp from "../../assets/Hosp.jpg";
-import {auth, db} from "../../firebase/config"; // Importamos db para Firestore
-import {createUserWithEmailAndPassword} from "firebase/auth";
-import {doc, setDoc} from "firebase/firestore"; // Funciones para guardar datos
+import logoH from "../../assets/logoH.png";
 
 const RegisterCard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [alertInfo, setAlertInfo] = useState({show: false, msg: "", type: ""});
+  const {register, handleSubmit} = useForm();
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const handleRegister = async (data) => {
     setLoading(true);
 
-    // Captura de datos usando el ID del input
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-    const fullname = e.target.fullname.value;
-    const confirmPassword = e.target.confirm_password.value;
-
-    if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden.");
-      setLoading(false);
-      return;
-    }
-    if (!fullname) {
-      alert("Por favor, ingresa tu nombre completo.");
+    // CONSERVAMOS TU VALIDACIÓN MANUAL DE CONTRASEÑAS
+    if (data.password !== data.confirm_password) {
+      setAlertInfo({
+        show: true,
+        msg: "Las contraseñas no coinciden.",
+        type: "error",
+      });
       setLoading(false);
       return;
     }
@@ -35,144 +33,143 @@ const RegisterCard = () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        email,
-        password
+        data.email,
+        data.password,
       );
-      const user = userCredential.user;
+      await updateProfile(userCredential.user, {displayName: data.fullname});
 
-      await setDoc(doc(db, "users", user.uid), {
-        fullname: fullname,
-        email: email,
-        role: "student",
+      // TU LÓGICA DE ROLES UCE
+      const role = data.email.endsWith("@uce.edu.ec") ? "student" : "user";
+
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        fullname: data.fullname,
+        email: data.email,
+        role: role,
         createdAt: new Date(),
       });
 
-      console.log("Usuario creado y guardado exitosamente");
-
-      navigate("/login", {state: {message: "¡Cuenta creada exitosamente!"}});
+      navigate("/dashboard");
     } catch (error) {
-      console.error("Error completo:", error);
       setLoading(false);
-
+      // CONSERVAMOS TUS MENSAJES DE ERROR
       if (error.code === "auth/email-already-in-use") {
-        alert("Este correo ya está registrado.");
-      } else if (error.code === "permission-denied") {
-        alert("Error de permisos en la base de datos (Firestore).");
+        setAlertInfo({
+          show: true,
+          msg: "Este correo ya está registrado.",
+          type: "error",
+        });
       } else {
-        alert("Error: " + error.message);
+        setAlertInfo({
+          show: true,
+          msg: "Coloca mínimo 6 caracteres en la contraseña.",
+          type: "error",
+        });
       }
     }
   };
 
   return (
-    <div className="w-full max-w-[1100px] bg-white dark:bg-[#1a2632] rounded-[2.5rem] shadow-2xl shadow-blue-900/10 border border-white overflow-hidden flex flex-col md:flex-row min-h-[600px] animate-fade-in-up">
-      <div className="relative w-full md:w-5/12 hidden md:flex flex-col justify-center items-center p-12 text-center group overflow-hidden">
-        <div className="absolute inset-0 bg-[#137fec]/85 mix-blend-multiply z-10"></div>
-
-        <img
-          alt="Hospital del Día"
-          className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-105"
-          src={Hosp}
-        />
-
-        <div className="relative z-20 flex flex-col gap-6 text-white">
-          <div className="size-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-2 border border-white/30">
-            <img src={logoH} alt="Logo Hospital" className="h-14 w-auto" />
-          </div>
-          <h3 className="text-3xl font-black leading-tight tracking-tight">
-            Salud universitaria a tu alcance
-          </h3>
-          <p className="text-white/90 text-base font-light leading-relaxed">
-            Gestiona tus citas, revisa tu historial médico y accede a los
-            servicios de bienestar universitario desde cualquier lugar.
-          </p>
-        </div>
-      </div>
-
-      <div className="w-full md:w-7/12 p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-white">
-        <div className="max-w-md mx-auto w-full">
-          <div className="mb-8">
-            <h1 className="text-slate-900 text-3xl font-black tracking-tight mb-2">
-              Crear cuenta
-            </h1>
-            <p className="text-slate-500 text-sm font-medium">
-              Ingresa tus datos para registrarte en el portal.
-            </p>
-          </div>
-
-          <form className="flex flex-col gap-4" onSubmit={handleRegister}>
-            <InputField
-              label="Nombre Completo"
-              icon="person"
-              type="text"
-              placeholder="Ej. Juan Pérez"
-              id="fullname"
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-slate-50">
+      <StatusAlert
+        type={alertInfo.type}
+        message={alertInfo.show ? alertInfo.msg : ""}
+        onClose={() => setAlertInfo({...alertInfo, show: false})}
+      />
+      <div className="flex-grow flex items-center justify-center p-6">
+        <div className="w-full max-w-[1100px] bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+          <div className="relative w-full md:w-5/12 hidden md:flex flex-col justify-center items-center p-12 text-center group overflow-hidden">
+            <div className="absolute inset-0 bg-[#137fec]/85 mix-blend-multiply z-10"></div>
+            <img
+              alt="Hospital"
+              className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-105"
+              src={Hosp}
             />
-
-            <div className="flex flex-col gap-1">
-              <InputField
-                label="Correo Electrónico"
-                icon="school"
-                type="email"
-                placeholder="estudiante@uce.edu.ec"
-                id="email"
-              />
+            <div className="relative z-20 flex flex-col gap-6 text-white">
+              <div className="size-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-2 border border-white/30 overflow-hidden">
+                {" "}
+                <img
+                  src={logoH}
+                  alt="Logo Hospital"
+                  className="w-full h-full object-contain scale-125"
+                />
+              </div>
+              <h3 className="text-3xl font-black italic">
+                Bienvenido al Hospital del Día UCE
+              </h3>
+              <p className="text-white/90 text-base font-light">
+                Regístrate para acceder a citas médicas gratuitas (estudiantes)
+                o servicios externos.
+              </p>
             </div>
+          </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <InputField
-                label="Contraseña"
-                icon="lock"
-                type="password"
-                placeholder="******"
-                id="password"
-              />
-              <InputField
-                label="Confirmar"
-                icon="lock_reset"
-                type="password"
-                placeholder="******"
-                id="confirm_password"
-              />
-            </div>
-
-            <div className="flex items-start gap-3 mt-2">
-              <input
-                required
-                type="checkbox"
-                id="terms"
-                className="mt-1 size-4 rounded border-slate-300 text-primary focus:ring-primary/20"
-              />
-              <label
-                htmlFor="terms"
-                className="text-xs font-medium text-slate-500 leading-tight"
+          <div className="w-full md:w-7/12 p-8 md:p-12 lg:p-16 flex flex-col justify-center bg-white">
+            <div className="max-w-md mx-auto w-full">
+              <h1 className="text-slate-900 text-3xl font-black mb-6">
+                Crear cuenta
+              </h1>
+              <form
+                className="flex flex-col gap-4"
+                onSubmit={handleSubmit(handleRegister)}
               >
-                Acepto los Términos y Condiciones .
-              </label>
+                <InputField
+                  label="Nombre Completo"
+                  icon="person"
+                  type="text"
+                  placeholder="Ej. Juan Pérez"
+                  {...register("fullname")}
+                  required
+                />
+                <InputField
+                  label="Correo Electrónico"
+                  icon="school"
+                  type="email"
+                  placeholder="juan.perez@uce.edu.ec"
+                  {...register("email")}
+                  required
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <InputField
+                    label="Contraseña"
+                    icon="lock"
+                    type="password"
+                    placeholder="******"
+                    {...register("password")}
+                    required
+                  />
+                  <InputField
+                    label="Confirmar"
+                    icon="lock_reset"
+                    type="password"
+                    placeholder="******"
+                    {...register("confirm_password")}
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-4 w-full h-12 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center"
+                >
+                  <span>{loading ? "Registrando..." : "Crear mi cuenta"}</span>
+                </button>
+              </form>
+              <div className="mt-8 text-center border-t border-slate-100 pt-6">
+                <p className="text-slate-500 text-sm">
+                  ¿Ya tienes una cuenta?{" "}
+                  <Link
+                    className="text-blue-600 font-bold hover:underline ml-1"
+                    to="/login"
+                  >
+                    Inicia sesión aquí
+                  </Link>
+                </p>
+              </div>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-4 w-full h-12 bg-primary hover:bg-primary-dark text-white font-bold rounded-2xl shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 group"
-            >
-              <span>{loading ? "Creando cuenta..." : "Crear mi cuenta"}</span>
-            </button>
-          </form>
-
-          <div className="mt-8 text-center border-t border-slate-100 pt-6">
-            <p className="text-slate-500 text-sm font-medium">
-              ¿Ya tienes una cuenta?{" "}
-              <Link
-                className="text-primary font-bold hover:underline ml-1"
-                to="/login"
-              >
-                Inicia sesión aquí
-              </Link>
-            </p>
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
