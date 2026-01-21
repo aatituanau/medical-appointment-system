@@ -14,7 +14,7 @@ import {
 import {ref, onValue, set, runTransaction} from "firebase/database";
 import {db, rtdb} from "../firebase/config";
 
-// --- Specialties  ---
+// --- Specialties ---
 export const useSpecialties = () => {
   const queryClient = useQueryClient();
   const query = useQuery({
@@ -48,7 +48,7 @@ export const useSpecialties = () => {
   };
 };
 
-// --- Doctors (TAL CUAL TUYO) ---
+// --- Doctors ---
 export const useDoctors = () => {
   const queryClient = useQueryClient();
   const query = useQuery({
