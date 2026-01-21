@@ -46,23 +46,25 @@ const ScheduleAppointment = () => {
 
   // Separar mañana y tarde para tus componentes originales
   const morningSlots = realtimeSlots
-    ? Object.values(realtimeSlots)
-        .filter((s) => parseInt(s.time) < 13)
-        .map((s) => s.time)
+    ? Object.values(realtimeSlots).filter((s) => parseInt(s.time) < 13)
     : [];
+
   const afternoonSlots = realtimeSlots
-    ? Object.values(realtimeSlots)
-        .filter((s) => parseInt(s.time) >= 13)
-        .map((s) => s.time)
+    ? Object.values(realtimeSlots).filter((s) => parseInt(s.time) >= 13)
     : [];
 
   const handleConfirm = async () => {
     if (!selectedTime) return alert("Por favor, selecciona un horario");
     if (!user) return alert("Debes iniciar sesión para agendar");
+    if (!selectedDocObj) return alert("Por favor, selecciona un médico"); // Seguridad extra
 
     try {
+      // IMPORTANTE: Aquí enviamos todos los datos para Firestore y Realtime
       await bookSlot({
         doctorId: selectedDocObj.id,
+        doctorName: selectedDocObj.name, // <--- ESTE FALTABA
+        specialty: specialty, // <--- ESTE FALTABA
+        office: selectedDocObj.office, // <--- ESTE FALTABA
         date: selectedDate,
         time: selectedTime.replace(":", ""),
         studentId: user.uid,
@@ -75,6 +77,7 @@ const ScheduleAppointment = () => {
         msg: `¡Cita agendada con éxito para las ${selectedTime}!`,
       });
 
+      // Pequeña espera para que el usuario vea el mensaje antes de ir al historial
       setTimeout(() => navigate("/citas"), 2000);
     } catch (error) {
       setAlert({
