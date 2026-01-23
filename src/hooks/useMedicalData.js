@@ -116,7 +116,6 @@ export const useManageAvailability = () => {
 
       if (!snap.empty) {
         const docRef = doc(db, "availability", snap.docs[0].id);
-        // We update the list of slots (this is where slots are added or removed)
         await updateDoc(docRef, {slots});
       } else {
         await addDoc(collection(db, "availability"), {
@@ -137,41 +136,47 @@ export const useManageAvailability = () => {
   });
 };
 
-// --- NEW: APPOINTMENT MANAGEMENT (REALTIME DATABASE - STUDENTS) ---
-
-// Hook for students to see slots in REAL TIME
+// --- REALTIME DATABASE SLOTS ---
 export const useRealtimeSlots = (doctorId, date) => {
   const [slots, setSlots] = useState(null);
 
   useEffect(() => {
     if (!doctorId || !date) return;
-
-    // Reference to the node in Realtime Database
     const slotsRef = ref(rtdb, `schedules/${doctorId}/${date}`);
-
-    // onValue listens for changes and updates the state instantly
     const unsubscribe = onValue(slotsRef, (snapshot) => {
       setSlots(snapshot.val());
     });
-
     return () => unsubscribe();
   }, [doctorId, date]);
 
   return slots;
 };
 
-// Function to book using TRANSACTIONS (Prevents two students from taking the same slot)
+// --- BOOKING + HISTORY ---
 export const useBookSlot = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async ({doctorId, date, time, studentId}) => {
+    mutationFn: async ({
+      doctorId,
+      doctorName,
+      specialty,
+      date,
+      time,
+      studentId,
+      studentName,
+      office,
+    }) => {
       const slotRef = ref(rtdb, `schedules/${doctorId}/${date}/${time}`);
 
       const result = await runTransaction(slotRef, (currentData) => {
-        // If the slot is available, we take it
         if (currentData === null || currentData.status === "available") {
-          return {status: "taken", studentId: studentId};
+          return {
+            status: "taken",
+            studentId: studentId,
+            time: currentData?.time || time,
+          };
         }
-        // If it's already taken, we cancel
         return;
       });
 
@@ -179,7 +184,44 @@ export const useBookSlot = () => {
         throw new Error("Este horario ya fue ocupado por otro estudiante.");
       }
 
+      // SAVE TO HISTORY FIRESTORE
+      await addDoc(collection(db, "appointments"), {
+        doctorId,
+        doctorName,
+        specialty,
+        date,
+        time:
+          time.length === 3
+            ? `0${time.slice(0, 1)}:${time.slice(1)}`
+            : `${time.slice(0, 2)}:${time.slice(2)}`,
+        studentId,
+        studentName,
+        office,
+        status: "confirmada",
+        createdAt: new Date(),
+      });
+
       return result.snapshot.val();
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["userAppointments"]});
+    },
+  });
+};
+
+// --- USER HISTORY ---
+export const useUserAppointments = (studentId) => {
+  return useQuery({
+    queryKey: ["userAppointments", studentId],
+    queryFn: async () => {
+      if (!studentId) return [];
+      const q = query(
+        collection(db, "appointments"),
+        where("studentId", "==", studentId),
+      );
+      const snap = await getDocs(q);
+      return snap.docs.map((d) => ({id: d.id, ...d.data()}));
+    },
+    enabled: !!studentId,
   });
 };
