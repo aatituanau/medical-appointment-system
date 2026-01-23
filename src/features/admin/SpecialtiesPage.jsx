@@ -1,11 +1,13 @@
 import React, {useState} from "react";
 import {useSpecialties} from "../../hooks/useMedicalData";
+import {useDebounce} from "../../hooks/useDebounce"; // Import custom hook
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import MedicalModal from "../../components/ui-admin/MedicalModal";
 import MedicalForm from "../../components/ui-admin/MedicalForm";
 import {getSpecialtyIcon} from "../../utils/specialtyIcons";
 
 const SpecialtiesPage = () => {
+  // --- STATES ---
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentSpec, setCurrentSpec] = useState(null);
@@ -16,6 +18,7 @@ const SpecialtiesPage = () => {
     active: true,
   });
 
+  // --- CUSTOM HOOKS ---
   const {
     data: specialties,
     isLoading,
@@ -24,6 +27,10 @@ const SpecialtiesPage = () => {
     deleteSpecialty,
   } = useSpecialties();
 
+  // Use debounce to delay search filter (500ms)
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  // --- FORM CONFIGURATION ---
   const specFields = [
     {
       name: "name",
@@ -39,8 +46,10 @@ const SpecialtiesPage = () => {
     },
   ];
 
+  // --- HANDLERS ---
   const handleOpenModal = (spec = null) => {
     if (spec) {
+      // Setup data for editing
       setCurrentSpec(spec);
       setFormData({
         name: spec.name,
@@ -48,6 +57,7 @@ const SpecialtiesPage = () => {
         active: spec.active ?? true,
       });
     } else {
+      // Setup data for new record
       setCurrentSpec(null);
       setFormData({
         name: "",
@@ -59,6 +69,7 @@ const SpecialtiesPage = () => {
   };
 
   const handleSubmit = () => {
+    // Check if it's update or create
     if (currentSpec) {
       updateSpecialty({id: currentSpec.id, ...formData});
     } else {
@@ -67,8 +78,10 @@ const SpecialtiesPage = () => {
     setIsModalOpen(false);
   };
 
+  // --- FILTER LOGIC ---
+  // Filter list using the debounced value for better performance
   const filteredSpecs = specialties?.filter((s) =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    s.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
   );
 
   if (isLoading) {
@@ -84,6 +97,7 @@ const SpecialtiesPage = () => {
 
   return (
     <div className="space-y-4 md:space-y-6 p-2 md:p-0">
+      {/* Search and Action Header */}
       <AdminSearchHeader
         placeholder="Buscar especialidad..."
         btnText="Añadir Especialidad"
@@ -92,6 +106,7 @@ const SpecialtiesPage = () => {
         setSearchTerm={setSearchTerm}
       />
 
+      {/* Modal for Create/Edit */}
       <MedicalModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -107,6 +122,7 @@ const SpecialtiesPage = () => {
             }
           />
 
+          {/* Status Toggle (Active/Inactive) */}
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 mt-4">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
               Estado de Visibilidad
@@ -132,6 +148,7 @@ const SpecialtiesPage = () => {
         </div>
       </MedicalModal>
 
+      {/* Specialties Data Table */}
       <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[500px] md:min-w-full">
@@ -153,8 +170,8 @@ const SpecialtiesPage = () => {
                   className="hover:bg-slate-50/50 transition-colors group"
                 >
                   <td className="px-4 md:px-8 py-5">
+                    {/* Dynamic Icon from Utility */}
                     <div className="size-10 md:size-12 bg-blue-50/50 rounded-xl flex items-center justify-center text-[#137fec]">
-                      {" "}
                       <span className="material-symbols-outlined text-xl md:text-2xl">
                         {getSpecialtyIcon(spec.name)}
                       </span>
@@ -165,7 +182,6 @@ const SpecialtiesPage = () => {
                       <span className="text-sm font-black text-slate-800 uppercase italic leading-tight">
                         {spec.name}
                       </span>
-
                       <span className="lg:hidden text-[10px] text-slate-400 font-medium truncate max-w-[150px] mt-1">
                         {spec.description || "Sin descripción"}
                       </span>
@@ -175,6 +191,7 @@ const SpecialtiesPage = () => {
                     {spec.description}
                   </td>
                   <td className="px-4 md:px-8 py-5">
+                    {/* Status Indicator Badge */}
                     <div className="flex items-center gap-2">
                       <div
                         className={`size-1.5 rounded-full ${
@@ -191,6 +208,7 @@ const SpecialtiesPage = () => {
                       <button
                         onClick={() => handleOpenModal(spec)}
                         className="p-2 text-slate-300 hover:text-blue-500 transition-all hover:scale-110"
+                        title="Edit Specialty"
                       >
                         <span className="material-icons-outlined text-xl">
                           edit
@@ -202,6 +220,7 @@ const SpecialtiesPage = () => {
                           deleteSpecialty(spec.id)
                         }
                         className="p-2 text-slate-300 hover:text-red-500 transition-all hover:scale-110"
+                        title="Delete Specialty"
                       >
                         <span className="material-icons-outlined text-xl">
                           delete
@@ -211,6 +230,18 @@ const SpecialtiesPage = () => {
                   </td>
                 </tr>
               ))}
+
+              {/* Empty state when no search results */}
+              {filteredSpecs?.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="px-8 py-10 text-center text-slate-400 font-bold uppercase text-[10px] tracking-widest"
+                  >
+                    No results found
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

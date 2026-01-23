@@ -1,10 +1,12 @@
 import React, {useState} from "react";
 import {useDoctors, useSpecialties} from "../../hooks/useMedicalData";
+import {useDebounce} from "../../hooks/useDebounce"; // Importamos tu nuevo custom hook
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import MedicalModal from "../../components/ui-admin/MedicalModal";
 import MedicalForm from "../../components/ui-admin/MedicalForm";
 
 const DoctorsPage = () => {
+  // --- STATES ---
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDoctor, setCurrentDoctor] = useState(null);
@@ -15,6 +17,7 @@ const DoctorsPage = () => {
     active: true,
   });
 
+  // --- HOOKS & DATA ---
   const {
     data: doctors,
     isLoading,
@@ -25,17 +28,43 @@ const DoctorsPage = () => {
 
   const {data: specialties, isLoading: isLoadSpecs} = useSpecialties();
 
-  if (isLoading || isLoadSpecs) {
-    return (
-      <div className="p-10 md:p-20 text-center flex flex-col items-center gap-4">
-        <div className="animate-spin size-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        <p className="font-black text-slate-400 uppercase tracking-widest text-[10px] md:text-xs">
-          Sincronizando cuerpo médico...
-        </p>
-      </div>
-    );
-  }
+  // Debounced search term to optimize filtering
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
+  // --- HANDLERS ---
+  const handleOpenModal = (doctor = null) => {
+    if (doctor) {
+      setCurrentDoctor(doctor);
+      setFormData({
+        name: doctor.name,
+        email: doctor.email,
+        specialty: doctor.specialty,
+        active: doctor.active,
+      });
+    } else {
+      setCurrentDoctor(null);
+      setFormData({name: "", email: "", specialty: "", active: true});
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = () => {
+    if (currentDoctor) {
+      updateItem({id: currentDoctor.id, ...formData});
+    } else {
+      addItem(formData);
+    }
+    setIsModalOpen(false);
+  };
+
+  // --- FILTER LOGIC ---
+  const filteredDoctors = doctors?.filter(
+    (doc) =>
+      doc.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      doc.specialty.toLowerCase().includes(debouncedSearch.toLowerCase()),
+  );
+
+  // --- FORM FIELDS CONFIG ---
   const doctorFields = [
     {
       name: "name",
@@ -62,48 +91,34 @@ const DoctorsPage = () => {
     },
   ];
 
-  const handleOpenModal = (doctor = null) => {
-    if (doctor) {
-      setCurrentDoctor(doctor);
-      setFormData({
-        name: doctor.name,
-        email: doctor.email,
-        specialty: doctor.specialty,
-        active: doctor.active,
-      });
-    } else {
-      setCurrentDoctor(null);
-      setFormData({name: "", email: "", specialty: "", active: true});
-    }
-    setIsModalOpen(true);
-  };
-
-  const filteredDoctors = doctors?.filter(
-    (doc) =>
-      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.specialty.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  if (isLoading || isLoadSpecs) {
+    return (
+      <div className="p-10 md:p-20 text-center flex flex-col items-center gap-4">
+        <div className="animate-spin size-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        <p className="font-black text-slate-400 uppercase tracking-widest text-[10px] md:text-xs">
+          Sincronizando cuerpo médico...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-6 p-2 md:p-0">
+      {/* HEADER & SEARCH */}
       <AdminSearchHeader
-        placeholder="Buscar médico..."
+        placeholder="Buscar médico por nombre o especialidad..."
         btnText="Nuevo Médico"
         onAddClick={() => handleOpenModal()}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
 
+      {/* MODAL FOR CREATE/EDIT */}
       <MedicalModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={currentDoctor ? "Editar Médico" : "Registrar Médico"}
-        onSubmit={() => {
-          currentDoctor
-            ? updateItem({id: currentDoctor.id, ...formData})
-            : addItem(formData);
-          setIsModalOpen(false);
-        }}
+        onSubmit={handleSubmit}
       >
         <div className="max-h-[70vh] overflow-y-auto px-1">
           <MedicalForm
@@ -115,7 +130,7 @@ const DoctorsPage = () => {
           />
           <div className="mt-4 flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Estado Activo
+              Estado del Especialista (Activo/Inactivo)
             </span>
             <input
               type="checkbox"
@@ -129,12 +144,13 @@ const DoctorsPage = () => {
         </div>
       </MedicalModal>
 
+      {/* TABLE OF DOCTORS */}
       <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[600px] md:min-w-full">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <th className="px-4 md:px-8 py-5">Médico</th>
+                <th className="px-4 md:px-8 py-5">Médico Especialista</th>
                 <th className="px-4 md:px-8 py-5">Especialidad</th>
                 <th className="px-4 md:px-8 py-5 hidden sm:table-cell">
                   Estado
@@ -156,15 +172,6 @@ const DoctorsPage = () => {
                       <span className="text-[10px] text-slate-400 font-bold normal-case md:mt-1">
                         {doc.email}
                       </span>
-
-                      <div className="flex sm:hidden items-center gap-1.5 mt-2">
-                        <div
-                          className={`size-1.5 rounded-full ${doc.active ? "bg-green-500" : "bg-red-500"}`}
-                        ></div>
-                        <span className="text-[9px] font-black text-slate-500 uppercase">
-                          {doc.active ? "Activo" : "Inactivo"}
-                        </span>
-                      </div>
                     </div>
                   </td>
                   <td className="px-4 md:px-8 py-5">
@@ -189,6 +196,7 @@ const DoctorsPage = () => {
                       <button
                         onClick={() => handleOpenModal(doc)}
                         className="p-2 text-slate-300 hover:text-blue-500 transition-colors"
+                        title="Editar"
                       >
                         <span className="material-icons-outlined text-xl">
                           edit
@@ -196,9 +204,11 @@ const DoctorsPage = () => {
                       </button>
                       <button
                         onClick={() =>
-                          confirm("¿Borrar?") && deleteItem(doc.id)
+                          confirm(`¿Está seguro de eliminar al ${doc.name}?`) &&
+                          deleteItem(doc.id)
                         }
                         className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+                        title="Eliminar"
                       >
                         <span className="material-icons-outlined text-xl">
                           delete
@@ -208,6 +218,17 @@ const DoctorsPage = () => {
                   </td>
                 </tr>
               ))}
+
+              {filteredDoctors?.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="px-8 py-10 text-center text-slate-400 font-bold uppercase text-[10px] tracking-widest"
+                  >
+                    No se encontraron médicos que coincidan con la búsqueda
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -3,8 +3,9 @@ import {
   useDoctors,
   useDoctorAvailability,
   useManageAvailability,
-  useRealtimeSlots, // Este hook es la clave de la reactividad
+  useRealtimeSlots,
 } from "../../hooks/useMedicalData";
+import {useDebounce} from "../../hooks/useDebounce"; // 1. Import hook
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import {ref, set} from "firebase/database";
 import {rtdb} from "../../firebase/config";
@@ -16,32 +17,35 @@ const AppointmentsPage = () => {
     new Date().toISOString().split("T")[0],
   );
 
-  // 1. Médicos disponibles
+  // Use the hook with 500ms (balanced time)
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  // Medical lists of firebase
   const {data: doctors, isLoading: loadingDocs} = useDoctors();
 
-  // 2. Configuración persistente (Firestore)
+  // Persistent configuration (Firestore)
   const {data: availability} = useDoctorAvailability(
     selectedDoc?.id,
     selectedDate,
   );
 
-  // 3. Estado en VIVO (Realtime Database) - Fuente de verdad para la UI
+  // 3. Live status (Realtime Database)
   const realtimeSlots = useRealtimeSlots(selectedDoc?.id, selectedDate);
 
   const {mutate: saveAvailability} = useManageAvailability();
 
+  // Filter using the DEBOUNCED value
   const filteredDoctors = doctors?.filter(
     (doc) =>
-      doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.specialty.toLowerCase().includes(searchTerm.toLowerCase()),
+      doc.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      doc.specialty.toLowerCase().includes(debouncedSearch.toLowerCase()),
   );
 
-  // HABILITAR / DESHABILITAR SLOT INDIVIDUAL
+  // ENABLE / DISABLE INDIVIDUAL SLOT
   const handleToggleSlot = async (time) => {
     if (!selectedDoc) return;
     const formattedTime = time.replace(":", "");
 
-    // Verificamos si ya está agendado en RTDB
     const isTaken =
       realtimeSlots && realtimeSlots[formattedTime]?.status === "taken";
     if (isTaken) {
@@ -60,11 +64,9 @@ const AppointmentsPage = () => {
     );
 
     if (isEnabled) {
-      // 1. Borrar de RTDB primero (Efecto visual instantáneo)
       await set(rtdbRef, null);
       newSlots = currentSlots.filter((s) => s.time !== time);
     } else {
-      // 1. Escribir en RTDB primero
       await set(rtdbRef, {
         status: "available",
         time,
@@ -75,7 +77,6 @@ const AppointmentsPage = () => {
       newSlots = [...currentSlots, newSlot];
     }
 
-    // 2. Guardar respaldo en Firestore
     newSlots.sort((a, b) => a.time.localeCompare(b.time));
     saveAvailability({
       doctorId: selectedDoc.id,
@@ -84,7 +85,7 @@ const AppointmentsPage = () => {
     });
   };
 
-  // HABILITAR TODA LA JORNADA
+  // ENABLE FULL DAY
   const handleEnableAll = async () => {
     if (!selectedDoc || !selectedDoc.baseSlots) return;
 
@@ -97,7 +98,6 @@ const AppointmentsPage = () => {
         : {time: t, available: true, status: "free"};
     });
 
-    // Sincronizar RTDB masivamente
     const promises = fullDay.map((slot) => {
       const formattedT = slot.time.replace(":", "");
       if (slot.status !== "taken") {
@@ -119,7 +119,6 @@ const AppointmentsPage = () => {
 
     await Promise.all(promises);
 
-    // Respaldo en Firestore
     saveAvailability({
       doctorId: selectedDoc.id,
       date: selectedDate,
@@ -144,7 +143,6 @@ const AppointmentsPage = () => {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* LISTADO DE DOCTORES */}
         <div className="lg:col-span-1 bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm h-[700px] flex flex-col overflow-hidden">
           <h3 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">
             Personal Médico
@@ -168,10 +166,14 @@ const AppointmentsPage = () => {
                 </p>
               </button>
             ))}
+            {filteredDoctors?.length === 0 && (
+              <p className="text-center text-[10px] text-slate-400 font-bold mt-10">
+                No hay resultados
+              </p>
+            )}
           </div>
         </div>
 
-        {/* AGENDA DINÁMICA */}
         <div className="lg:col-span-3 bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
           {selectedDoc ? (
             <div className="space-y-8">
@@ -203,7 +205,6 @@ const AppointmentsPage = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {selectedDoc.baseSlots?.map((time) => {
                   const formattedTime = time.replace(":", "");
-                  // IMPORTANTE: Leemos de realtimeSlots para la UI
                   const slotInRealtime = realtimeSlots
                     ? realtimeSlots[formattedTime]
                     : null;

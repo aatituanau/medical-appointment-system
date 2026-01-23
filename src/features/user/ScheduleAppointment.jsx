@@ -6,6 +6,7 @@ import DoctorSelectionCard from "../../components/ui/DoctorSelectionCard";
 import AppointmentSummary from "../../components/ui/AppointmentSummary";
 import TimeSlotGrid from "../../components/ui/TimeSlotGrid";
 import emailjs from "@emailjs/browser";
+import uce from "../../assets/uce.png";
 
 // Hooks of conection to medical data
 import {
@@ -213,10 +214,7 @@ const ScheduleAppointment = () => {
           <DoctorSelectionCard
             name={selectedDocObj?.name || "Seleccione Médico"}
             specialty={specialty}
-            image={
-              selectedDocObj?.image ||
-              "https://randomuser.me/api/portraits/men/32.jpg"
-            }
+            image={selectedDocObj?.image || uce}
           />
 
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8">
