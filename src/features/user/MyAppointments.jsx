@@ -1,13 +1,26 @@
-import React from "react";
+import React, {useMemo} from "react";
 import {useAuth} from "../../context/AuthContext";
 import {useUserAppointments} from "../../hooks/useMedicalData";
 
 const MyAppointments = () => {
   const {user} = useAuth();
-  // Llamamos a los datos reales de Firestore
   const {data: appointments, isLoading} = useUserAppointments(user?.uid);
 
-  // Función para obtener el nombre del mes a partir de la fecha YYYY-MM-DD
+  // DESCENDING ORDER: Most recent/future dates first
+  const sortedAppointments = useMemo(() => {
+    if (!appointments) return [];
+
+    return [...appointments].sort((a, b) => {
+      const dateA = new Date(a.date + "T00:00:00");
+      const dateB = new Date(b.date + "T00:00:00");
+
+      if (dateB - dateA !== 0) {
+        return dateB - dateA;
+      }
+      return parseInt(b.time) - parseInt(a.time);
+    });
+  }, [appointments]);
+
   const getMonthName = (dateStr) => {
     const date = new Date(dateStr + "T00:00:00");
     return date.toLocaleString("es-ES", {month: "long"});
@@ -29,26 +42,25 @@ const MyAppointments = () => {
           Mis Citas
         </h1>
         <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
-          {appointments?.length > 0
-            ? `Tienes ${appointments.length} citas registradas en el sistema`
+          {sortedAppointments?.length > 0
+            ? `Tienes ${sortedAppointments.length} citas registradas en el sistema`
             : "No se encontraron citas agendadas"}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {appointments?.map((cita) => (
+        {sortedAppointments?.map((cita) => (
           <div
             key={cita.id}
             className="bg-white p-10 rounded-[3.5rem] border-2 border-slate-50 shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all animate-fade-in"
           >
-            {/* ESTATUS */}
+            {/* STATUS */}
             <div className="absolute top-0 right-0 p-10">
               <span className="bg-green-50 text-green-600 text-[9px] font-black px-5 py-2 rounded-full uppercase border border-green-100">
                 {cita.status || "CONFIRMADA"}
               </span>
             </div>
 
-            {/* INFO PRINCIPAL (FECHA Y HORA) */}
             <div className="flex items-center gap-8">
               <div className="size-24 bg-[#137fec] rounded-[2.5rem] flex flex-col items-center justify-center text-white shadow-lg shadow-blue-500/20">
                 <span className="text-[10px] font-black uppercase opacity-60">
@@ -60,7 +72,10 @@ const MyAppointments = () => {
               </div>
               <div>
                 <p className="text-2xl font-black text-slate-800 uppercase italic leading-none">
-                  {cita.time}
+                  {/* Format "0900" to "09:00" */}
+                  {cita.time
+                    .padStart(4, "0")
+                    .replace(/^(\d{2})(\d{2})$/, "$1:$2")}
                 </p>
                 <p className="text-[11px] font-black text-[#137fec] uppercase tracking-[0.1em] mt-3 tracking-widest">
                   {cita.specialty}
@@ -68,7 +83,6 @@ const MyAppointments = () => {
               </div>
             </div>
 
-            {/* DETALLES Y BOTONES */}
             <div className="mt-10 pt-10 border-t border-slate-50 flex justify-between items-end">
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic mb-2">
@@ -84,11 +98,9 @@ const MyAppointments = () => {
 
               <div className="flex gap-2">
                 <button
-                  onClick={() =>
-                    alert(`Generando PDF para la cita del ${cita.date}...`)
-                  }
-                  className="bg-blue-50 text-[#137fec] size-12 rounded-2xl hover:bg-[#137fec] hover:text-white transition-all flex items-center justify-center shadow-sm group/print"
-                  title="Imprimir Comprobante"
+                  onClick={() => alert(`Generando PDF...`)}
+                  className="bg-blue-50 text-[#137fec] size-12 rounded-2xl hover:bg-[#137fec] hover:text-white transition-all flex items-center justify-center shadow-sm"
+                  title="Imprimir"
                 >
                   <span className="material-symbols-outlined text-xl">
                     print
@@ -96,11 +108,9 @@ const MyAppointments = () => {
                 </button>
 
                 <button
-                  onClick={() =>
-                    alert("Función para cancelar en desarrollo...")
-                  }
-                  className="bg-red-50 text-red-600 size-12 rounded-2xl hover:bg-red-600 hover:text-white transition-all flex items-center justify-center shadow-sm group/cancel"
-                  title="Cancelar Cita"
+                  onClick={() => alert("Función para cancelar...")}
+                  className="bg-red-50 text-red-600 size-12 rounded-2xl hover:bg-red-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
+                  title="Cancelar"
                 >
                   <span className="material-symbols-outlined text-xl">
                     cancel
@@ -111,8 +121,7 @@ const MyAppointments = () => {
           </div>
         ))}
 
-        {/* MENSAJE CUANDO NO HAY CITAS */}
-        {appointments?.length === 0 && (
+        {sortedAppointments?.length === 0 && (
           <div className="col-span-full py-20 text-center bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
             <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">
               calendar_today
