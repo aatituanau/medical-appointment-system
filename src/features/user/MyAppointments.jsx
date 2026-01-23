@@ -1,6 +1,7 @@
 import React, {useMemo} from "react";
 import {useAuth} from "../../context/AuthContext";
 import {useUserAppointments} from "../../hooks/useMedicalData";
+import {generateAppointmentPDF} from "../../utils/pdfGenerator";
 
 const MyAppointments = () => {
   const {user} = useAuth();
@@ -96,11 +97,12 @@ const MyAppointments = () => {
                 </p>
               </div>
 
+              {/* Generate PDF */}
               <div className="flex gap-2">
                 <button
-                  onClick={() => alert(`Generando PDF...`)}
-                  className="bg-blue-50 text-[#137fec] size-12 rounded-2xl hover:bg-[#137fec] hover:text-white transition-all flex items-center justify-center shadow-sm"
-                  title="Imprimir"
+                  onClick={() => generateAppointmentPDF(cita, user)}
+                  className="bg-blue-50 text-[#137fec] size-12 rounded-2xl hover:bg-[#137fec] hover:text-white transition-all flex items-center justify-center shadow-sm group/print"
+                  title="Descargar Comprobante PDF"
                 >
                   <span className="material-symbols-outlined text-xl">
                     print
