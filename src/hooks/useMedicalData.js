@@ -152,7 +152,7 @@ export const useRealtimeSlots = (doctorId, date) => {
   return slots;
 };
 
-// --- BOOKING + HISTORY (Aquí agregamos lo del historial) ---
+// --- BOOKING + HISTORY ---
 export const useBookSlot = () => {
   const queryClient = useQueryClient();
 
@@ -184,7 +184,7 @@ export const useBookSlot = () => {
         throw new Error("Este horario ya fue ocupado por otro estudiante.");
       }
 
-      // GUARDAR EN HISTORIAL FIRESTORE
+      // SAVE TO HISTORY FIRESTORE
       await addDoc(collection(db, "appointments"), {
         doctorId,
         doctorName,
