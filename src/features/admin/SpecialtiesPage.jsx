@@ -1,10 +1,11 @@
 import React, {useState} from "react";
 import {useSpecialties} from "../../hooks/useMedicalData";
-import {useDebounce} from "../../hooks/useDebounce"; // Import custom hook
+import {useDebounce} from "../../hooks/useDebounce";
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import MedicalModal from "../../components/ui-admin/MedicalModal";
 import MedicalForm from "../../components/ui-admin/MedicalForm";
 import {getSpecialtyIcon} from "../../utils/specialtyIcons";
+import Skeleton from "../../components/ui/Skeleton"; // 1. Import skeleton component
 
 const SpecialtiesPage = () => {
   // --- STATES ---
@@ -49,7 +50,6 @@ const SpecialtiesPage = () => {
   // --- HANDLERS ---
   const handleOpenModal = (spec = null) => {
     if (spec) {
-      // Setup data for editing
       setCurrentSpec(spec);
       setFormData({
         name: spec.name,
@@ -57,7 +57,6 @@ const SpecialtiesPage = () => {
         active: spec.active ?? true,
       });
     } else {
-      // Setup data for new record
       setCurrentSpec(null);
       setFormData({
         name: "",
@@ -69,7 +68,6 @@ const SpecialtiesPage = () => {
   };
 
   const handleSubmit = () => {
-    // Check if it's update or create
     if (currentSpec) {
       updateSpecialty({id: currentSpec.id, ...formData});
     } else {
@@ -79,25 +77,53 @@ const SpecialtiesPage = () => {
   };
 
   // --- FILTER LOGIC ---
-  // Filter list using the debounced value for better performance
   const filteredSpecs = specialties?.filter((s) =>
     s.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
   );
 
+  // --- 2. SKELETON LOADING STATE ---
   if (isLoading) {
     return (
-      <div className="p-10 md:p-20 text-center flex flex-col items-center gap-4">
-        <div className="animate-spin size-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        <p className="font-black text-slate-400 uppercase tracking-widest text-[10px] md:text-xs">
-          Cargando catálogo...
-        </p>
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="bg-white p-4 rounded-[2rem] border border-slate-100 flex gap-4">
+          <Skeleton className="h-12 w-full max-w-md rounded-2xl" />
+          <Skeleton className="h-12 w-40 rounded-2xl" />
+        </div>
+
+        {/* Table Content Skeleton */}
+        <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 overflow-hidden">
+          <div className="p-8 space-y-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between py-4 border-b border-slate-50 last:border-0"
+              >
+                <div className="flex items-center gap-6">
+                  <Skeleton className="size-12 rounded-xl" /> {/* Icon space */}
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-40" /> {/* Title space */}
+                    <Skeleton className="h-3 w-64 hidden md:block" />{" "}
+                    {/* Desc space */}
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Skeleton className="h-8 w-20 rounded-full" />{" "}
+                  {/* Status space */}
+                  <Skeleton className="size-8 rounded-lg" />{" "}
+                  {/* Action space */}
+                  <Skeleton className="size-8 rounded-lg" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4 md:space-y-6 p-2 md:p-0">
-      {/* Search and Action Header */}
       <AdminSearchHeader
         placeholder="Buscar especialidad..."
         btnText="Añadir Especialidad"
@@ -106,7 +132,6 @@ const SpecialtiesPage = () => {
         setSearchTerm={setSearchTerm}
       />
 
-      {/* Modal for Create/Edit */}
       <MedicalModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -122,7 +147,6 @@ const SpecialtiesPage = () => {
             }
           />
 
-          {/* Status Toggle (Active/Inactive) */}
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 mt-4">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
               Estado de Visibilidad
@@ -148,7 +172,6 @@ const SpecialtiesPage = () => {
         </div>
       </MedicalModal>
 
-      {/* Specialties Data Table */}
       <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[500px] md:min-w-full">
@@ -170,7 +193,6 @@ const SpecialtiesPage = () => {
                   className="hover:bg-slate-50/50 transition-colors group"
                 >
                   <td className="px-4 md:px-8 py-5">
-                    {/* Dynamic Icon from Utility */}
                     <div className="size-10 md:size-12 bg-blue-50/50 rounded-xl flex items-center justify-center text-[#137fec]">
                       <span className="material-symbols-outlined text-xl md:text-2xl">
                         {getSpecialtyIcon(spec.name)}
@@ -191,12 +213,9 @@ const SpecialtiesPage = () => {
                     {spec.description}
                   </td>
                   <td className="px-4 md:px-8 py-5">
-                    {/* Status Indicator Badge */}
                     <div className="flex items-center gap-2">
                       <div
-                        className={`size-1.5 rounded-full ${
-                          spec.active ? "bg-green-500" : "bg-red-500"
-                        }`}
+                        className={`size-1.5 rounded-full ${spec.active ? "bg-green-500" : "bg-red-500"}`}
                       ></div>
                       <span className="text-[9px] md:text-[10px] font-bold text-slate-600 uppercase">
                         {spec.active ? "Activa" : "Inactiva"}
@@ -230,8 +249,6 @@ const SpecialtiesPage = () => {
                   </td>
                 </tr>
               ))}
-
-              {/* Empty state when no search results */}
               {filteredSpecs?.length === 0 && (
                 <tr>
                   <td

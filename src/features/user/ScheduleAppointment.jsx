@@ -228,20 +228,11 @@ const ScheduleAppointment = () => {
             </h3>
 
             {realtimeSlots ? (
-              <>
-                <TimeSlotGrid
-                  label="Mañana"
-                  slots={morningSlots}
-                  selectedSlot={selectedTime}
-                  onSelect={setSelectedTime}
-                />
-                <TimeSlotGrid
-                  label="Tarde"
-                  slots={afternoonSlots}
-                  selectedSlot={selectedTime}
-                  onSelect={setSelectedTime}
-                />
-              </>
+              <TimeSlotGrid
+                slots={Object.values(realtimeSlots)}
+                selectedSlot={selectedTime}
+                onSelect={setSelectedTime}
+              />
             ) : (
               <p className="text-center text-[10px] font-black text-slate-300 uppercase py-10 tracking-widest italic">
                 No hay turnos habilitados por el administrador

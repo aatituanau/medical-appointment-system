@@ -2,6 +2,7 @@ import React, {useMemo} from "react";
 import {useAuth} from "../../context/AuthContext";
 import {useUserAppointments} from "../../hooks/useMedicalData";
 import {generateAppointmentPDF} from "../../utils/pdfGenerator";
+import Skeleton from "../../components/ui/Skeleton";
 
 const MyAppointments = () => {
   const {user} = useAuth();
@@ -29,8 +30,43 @@ const MyAppointments = () => {
 
   if (isLoading) {
     return (
-      <div className="p-20 text-center font-black text-slate-400 uppercase animate-pulse italic">
-        Sincronizando historial...
+      <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
+        {/* Skeleton del Header */}
+        <div className="bg-white p-10 rounded-[3rem] border border-slate-100">
+          <Skeleton className="h-10 w-48 mb-4" />
+          <Skeleton className="h-3 w-64" />
+        </div>
+
+        {/* Grid de Skeletons de Tarjetas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {[1, 2, 3, 4].map((item) => (
+            <div
+              key={item}
+              className="bg-white p-10 rounded-[3.5rem] border-2 border-slate-50 shadow-sm space-y-8"
+            >
+              <div className="flex items-center gap-8">
+                {/* Cuadro de fecha azul */}
+                <Skeleton className="size-24 rounded-[2.5rem] flex-shrink-0" />
+                <div className="space-y-3 w-full">
+                  <Skeleton className="h-8 w-24" /> {/* Hora */}
+                  <Skeleton className="h-3 w-32" /> {/* Especialidad */}
+                </div>
+              </div>
+
+              <div className="pt-10 border-t border-slate-50 flex justify-between items-end">
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-40" />
+                  <Skeleton className="h-4 w-56" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="size-12 rounded-2xl" />
+                  <Skeleton className="size-12 rounded-2xl" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
