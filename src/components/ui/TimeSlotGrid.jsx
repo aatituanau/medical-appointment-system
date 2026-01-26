@@ -51,19 +51,19 @@ const TimeSlotGrid = ({slots, selectedSlot, onSelect}) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* MORNING SECTION */}
       {morningSlots.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm text-amber-400">
+            <span className="material-symbols-outlined text-xs sm:text-sm text-amber-400">
               light_mode
             </span>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
+            <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
               Morning Sessions
             </p>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2">
             {morningSlots.map((slot) => (
               <SlotButton key={slot.time} slot={slot} />
             ))}
@@ -73,16 +73,16 @@ const TimeSlotGrid = ({slots, selectedSlot, onSelect}) => {
 
       {/* AFTERNOON SECTION */}
       {afternoonSlots.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-sm text-blue-400">
+            <span className="material-symbols-outlined text-xs sm:text-sm text-blue-400">
               wb_twilight
             </span>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
+            <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
               Afternoon Sessions
             </p>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2">
             {afternoonSlots.map((slot) => (
               <SlotButton key={slot.time} slot={slot} />
             ))}
