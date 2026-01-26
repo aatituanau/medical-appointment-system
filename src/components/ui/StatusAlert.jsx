@@ -1,4 +1,16 @@
+import React, {useEffect} from "react"; // Importamos useEffect
+
 const StatusAlert = ({type, message, onClose}) => {
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 5000); // 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [message, onClose]);
+
   if (!message) return null;
   const isError = type === "error";
 
@@ -34,4 +46,5 @@ const StatusAlert = ({type, message, onClose}) => {
     </div>
   );
 };
+
 export default StatusAlert;
