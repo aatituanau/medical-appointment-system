@@ -8,14 +8,6 @@ const InputField = forwardRef(
           <label className="text-slate-700 text-xs font-bold uppercase tracking-wider">
             {label}
           </label>
-          {forgotPassword && (
-            <button
-              type="button"
-              className="text-[10px] text-blue-600 font-bold hover:underline"
-            >
-              ¿Olvidaste tu clave?
-            </button>
-          )}
         </div>
         <div className="relative">
           {icon && (
