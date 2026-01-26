@@ -19,7 +19,7 @@ const LoginCard = () => {
   const navigate = useNavigate();
   const [alertInfo, setAlertInfo] = useState({show: false, msg: "", type: ""});
 
-  // 1. Configuramos React Hook Form con Zod
+  // 1. Configure React Hook Form with Zod
   const {
     register,
     handleSubmit,
@@ -28,7 +28,7 @@ const LoginCard = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  // 2. Efecto para mostrar errores de validación en la alerta
+  // 2. Effect to show validation errors in the alert
   useEffect(() => {
     const errorMessages = Object.values(errors);
     if (errorMessages.length > 0) {
@@ -120,14 +120,14 @@ const LoginCard = () => {
               icon="mail"
               type="email"
               placeholder="usuario@uce.edu.ec"
-              {...register("email")} // Zod lo valida ahora
+              {...register("email")} // Validate whith Zod
             />
             <InputField
               label="Contraseña"
               icon="lock"
               type="password"
               placeholder="******"
-              {...register("password")} // Zod lo valida ahora
+              {...register("password")} // Validate whith Zod
             />
             <button
               type="submit"
