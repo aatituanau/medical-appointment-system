@@ -1,9 +1,13 @@
-import React, {useState, useEffect} from "react";
+import React, {useState} from "react";
 
 const Calendar = ({onDateChange}) => {
   // Initialize with today's date
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // Get "Today" at 00:00:00 to compare correctly
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const days = ["L", "M", "X", "J", "V", "S", "D"];
 
@@ -35,15 +39,16 @@ const Calendar = ({onDateChange}) => {
   );
 
   const handleDateClick = (date) => {
-    // 0 = Sunday, 6 = Saturday
     const dayOfWeek = date.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    // If it is weekend, do nothing (blocked)
-    if (isWeekend) return;
+    // Check if the date is in the past
+    const isPast = date < today;
+
+    // If it is weekend or past date, do nothing
+    if (isWeekend || isPast) return;
 
     setSelectedDate(date);
-    // Format to YYYY-MM-DD for Firebase
     const formattedDate = date.toISOString().split("T")[0];
     onDateChange(formattedDate);
   };
@@ -57,7 +62,6 @@ const Calendar = ({onDateChange}) => {
     setCurrentDate(newDate);
   };
 
-  // Month names in Spanish
   const monthName = currentDate.toLocaleString("es-ES", {month: "long"});
 
   return (
@@ -100,32 +104,35 @@ const Calendar = ({onDateChange}) => {
       {/* Days grid */}
       <div className="grid grid-cols-7 gap-y-2">
         {monthDays.map((date, index) => {
-          // Check if day is Saturday or Sunday
-          const isWeekend =
-            date && (date.getDay() === 0 || date.getDay() === 6);
+          if (!date) return <div key={index} className="w-9 h-9" />;
+
+          // 1. Check if it is Saturday (6) or Sunday (0)
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+          // 2. Check if the date is before today
+          const isPast = date < today;
+
+          // 3. Disable if it is weekend OR past
+          const isDisabled = isWeekend || isPast;
 
           return (
             <div key={index} className="flex justify-center">
-              {date ? (
-                <button
-                  type="button"
-                  disabled={isWeekend} // Disable button if weekend
-                  onClick={() => handleDateClick(date)}
-                  className={`w-9 h-9 rounded-xl text-[11px] font-bold transition-all
+              <button
+                type="button"
+                disabled={isDisabled}
+                onClick={() => handleDateClick(date)}
+                className={`w-9 h-9 rounded-xl text-[11px] font-bold transition-all
                     ${
                       selectedDate?.toDateString() === date.toDateString()
                         ? "bg-[#137fec] text-white shadow-lg shadow-blue-200"
-                        : isWeekend
-                          ? "text-slate-200 cursor-not-allowed"
+                        : isDisabled
+                          ? "text-slate-200 cursor-not-allowed opacity-40"
                           : "text-slate-600 hover:bg-blue-50 hover:text-[#137fec]"
                     }
                   `}
-                >
-                  {date.getDate()}
-                </button>
-              ) : (
-                <div className="w-9 h-9" />
-              )}
+              >
+                {date.getDate()}
+              </button>
             </div>
           );
         })}
