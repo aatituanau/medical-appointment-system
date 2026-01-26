@@ -11,7 +11,7 @@ import {
   where,
   limit,
 } from "firebase/firestore";
-import {ref, onValue, set, runTransaction} from "firebase/database";
+import {ref, update, onValue, set, runTransaction} from "firebase/database";
 import {db, rtdb} from "../firebase/config";
 
 // --- Specialties ---
@@ -223,5 +223,34 @@ export const useUserAppointments = (studentId) => {
       return snap.docs.map((d) => ({id: d.id, ...d.data()}));
     },
     enabled: !!studentId,
+  });
+};
+
+export const useCancelAppointment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({appointmentId, doctorId, date, time}) => {
+      // 1. FIRESTORE: changed appointment status to 'CANCELADA'
+      const appointmentRef = doc(db, "appointments", appointmentId);
+      await updateDoc(appointmentRef, {
+        status: "CANCELADA",
+      });
+
+      // 2. REALTIME DATABASE: free the slot
+      const formattedTime = time.replace(":", "");
+      const rtdbPath = `schedules/${doctorId}/${date}/${formattedTime}`;
+      const rtdbRef = ref(rtdb, rtdbPath);
+
+      // IMPORTANT: Change the status to 'available'
+      await update(rtdbRef, {
+        status: "available",
+      });
+    },
+    onSuccess: () => {
+      // Invalidate queries so the UI refreshes automatically
+      queryClient.invalidateQueries(["userAppointments"]);
+      queryClient.invalidateQueries(["realtimeSlots"]);
+    },
   });
 };
