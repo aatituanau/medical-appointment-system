@@ -1,9 +1,11 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {useForm} from "react-hook-form";
 import {Link, useNavigate} from "react-router-dom";
+import {zodResolver} from "@hookform/resolvers/zod";
 import {createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
 import {doc, setDoc} from "firebase/firestore";
 import {auth, db} from "../../firebase/config";
+import {registerSchema} from "../../schemas/authSchema";
 import InputField from "../../components/ui/InputField";
 import Footer from "../../components/layout/Footer";
 import StatusAlert from "../../components/ui/StatusAlert";
@@ -14,31 +16,41 @@ const RegisterCard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [alertInfo, setAlertInfo] = useState({show: false, msg: "", type: ""});
-  const {register, handleSubmit} = useForm();
+
+  // Configuration of React Hook Form with Zod
+  const {
+    register,
+    handleSubmit,
+    formState: {errors},
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+  });
+
+  // Effect to display Zod errors in your StatusAlert
+  useEffect(() => {
+    // Get the first error if it exists
+    const errorMessages = Object.values(errors);
+    if (errorMessages.length > 0) {
+      setAlertInfo({
+        show: true,
+        msg: errorMessages[0].message,
+        type: "error",
+      });
+    }
+  }, [errors]);
 
   const handleRegister = async (data) => {
     setLoading(true);
-
-    // CONSERVAMOS TU VALIDACIÓN MANUAL DE CONTRASEÑAS
-    if (data.password !== data.confirm_password) {
-      setAlertInfo({
-        show: true,
-        msg: "Las contraseñas no coinciden.",
-        type: "error",
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         data.email,
         data.password,
       );
+
       await updateProfile(userCredential.user, {displayName: data.fullname});
 
-      // TU LÓGICA DE ROLES UCE
+      // Role logic (UCE vs External)
       const role = data.email.endsWith("@uce.edu.ec") ? "student" : "user";
 
       await setDoc(doc(db, "users", userCredential.user.uid), {
@@ -51,7 +63,6 @@ const RegisterCard = () => {
       navigate("/dashboard");
     } catch (error) {
       setLoading(false);
-      // CONSERVAMOS TUS MENSAJES DE ERROR
       if (error.code === "auth/email-already-in-use") {
         setAlertInfo({
           show: true,
@@ -61,11 +72,20 @@ const RegisterCard = () => {
       } else {
         setAlertInfo({
           show: true,
-          msg: "Coloca mínimo 6 caracteres en la contraseña.",
+          msg: "Error al crear cuenta. Intenta de nuevo.",
           type: "error",
         });
       }
     }
+  };
+
+  // Blockade of numbers in the name field
+  const handleNameKeyDown = (e) => {
+    if (
+      ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"].includes(e.key)
+    )
+      return;
+    if (/[0-9]/.test(e.key)) e.preventDefault();
   };
 
   return (
@@ -75,6 +95,7 @@ const RegisterCard = () => {
         message={alertInfo.show ? alertInfo.msg : ""}
         onClose={() => setAlertInfo({...alertInfo, show: false})}
       />
+
       <div className="flex-grow flex items-center justify-center p-6">
         <div className="w-full max-w-[1100px] bg-white rounded-[2.5rem] shadow-2xl border border-white overflow-hidden flex flex-col md:flex-row min-h-[600px]">
           <div className="relative w-full md:w-5/12 hidden md:flex flex-col justify-center items-center p-12 text-center group overflow-hidden">
@@ -86,7 +107,6 @@ const RegisterCard = () => {
             />
             <div className="relative z-20 flex flex-col gap-6 text-white">
               <div className="size-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-2 border border-white/30 overflow-hidden">
-                {" "}
                 <img
                   src={logoH}
                   alt="Logo Hospital"
@@ -97,8 +117,8 @@ const RegisterCard = () => {
                 Bienvenido al Hospital del Día UCE
               </h3>
               <p className="text-white/90 text-base font-light">
-                Regístrate para acceder a citas médicas gratuitas (estudiantes)
-                o servicios externos.
+                Regístrate para acceder a citas médicas gratuitas o servicios
+                externos.
               </p>
             </div>
           </div>
@@ -115,19 +135,18 @@ const RegisterCard = () => {
                 <InputField
                   label="Nombre Completo"
                   icon="person"
-                  type="text"
                   placeholder="Ej. Juan Pérez"
                   {...register("fullname")}
-                  required
+                  onKeyDown={handleNameKeyDown}
                 />
+
                 <InputField
                   label="Correo Electrónico"
                   icon="school"
-                  type="email"
                   placeholder="juan.perez@uce.edu.ec"
                   {...register("email")}
-                  required
                 />
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <InputField
                     label="Contraseña"
@@ -135,7 +154,6 @@ const RegisterCard = () => {
                     type="password"
                     placeholder="******"
                     {...register("password")}
-                    required
                   />
                   <InputField
                     label="Confirmar"
@@ -143,9 +161,9 @@ const RegisterCard = () => {
                     type="password"
                     placeholder="******"
                     {...register("confirm_password")}
-                    required
                   />
                 </div>
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -154,6 +172,7 @@ const RegisterCard = () => {
                   <span>{loading ? "Registrando..." : "Crear mi cuenta"}</span>
                 </button>
               </form>
+
               <div className="mt-8 text-center border-t border-slate-100 pt-6">
                 <p className="text-slate-500 text-sm">
                   ¿Ya tienes una cuenta?{" "}

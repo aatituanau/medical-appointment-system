@@ -1,6 +1,8 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {useForm} from "react-hook-form";
 import {Link, useNavigate} from "react-router-dom";
+import {zodResolver} from "@hookform/resolvers/zod"; // IMPORTANTE
+import {loginSchema} from "../../schemas/authSchema"; // IMPORTANTE
 import {auth, db} from "../../firebase/config";
 import {
   signInWithEmailAndPassword,
@@ -16,7 +18,27 @@ import StatusAlert from "../../components/ui/StatusAlert";
 const LoginCard = () => {
   const navigate = useNavigate();
   const [alertInfo, setAlertInfo] = useState({show: false, msg: "", type: ""});
-  const {register, handleSubmit} = useForm();
+
+  // 1. Configuramos React Hook Form con Zod
+  const {
+    register,
+    handleSubmit,
+    formState: {errors},
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
+
+  // 2. Efecto para mostrar errores de validación en la alerta
+  useEffect(() => {
+    const errorMessages = Object.values(errors);
+    if (errorMessages.length > 0) {
+      setAlertInfo({
+        show: true,
+        msg: errorMessages[0].message,
+        type: "error",
+      });
+    }
+  }, [errors]);
 
   const handleLogin = async (data) => {
     try {
@@ -33,7 +55,6 @@ const LoginCard = () => {
         else navigate("/dashboard");
       }
     } catch (error) {
-      // CONSERVAMOS TU MENSAJE ORIGINAL
       setAlertInfo({
         show: true,
         msg: "Credenciales incorrectas. Verifica tu correo y contraseña.",
@@ -99,14 +120,14 @@ const LoginCard = () => {
               icon="mail"
               type="email"
               placeholder="usuario@uce.edu.ec"
-              {...register("email")}
+              {...register("email")} // Zod lo valida ahora
             />
             <InputField
               label="Contraseña"
               icon="lock"
               type="password"
               placeholder="******"
-              {...register("password")}
+              {...register("password")} // Zod lo valida ahora
             />
             <button
               type="submit"
