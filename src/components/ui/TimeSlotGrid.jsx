@@ -60,7 +60,7 @@ const TimeSlotGrid = ({slots, selectedSlot, onSelect}) => {
               light_mode
             </span>
             <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
-              Morning Sessions
+              Horas de la mañana
             </p>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2">
@@ -79,7 +79,7 @@ const TimeSlotGrid = ({slots, selectedSlot, onSelect}) => {
               wb_twilight
             </span>
             <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
-              Afternoon Sessions
+              Horas de la tarde
             </p>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2">

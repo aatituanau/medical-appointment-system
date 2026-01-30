@@ -5,7 +5,7 @@ import {
   useManageAvailability,
   useRealtimeSlots,
 } from "../../hooks/useMedicalData";
-import {useDebounce} from "../../hooks/useDebounce"; // 1. Import hook
+import {useDebounce} from "../../hooks/useDebounce";
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import {ref, set} from "firebase/database";
 import {rtdb} from "../../firebase/config";
@@ -18,37 +18,27 @@ const AppointmentsPage = () => {
     new Date().toISOString().split("T")[0],
   );
 
-  // Use the hook with 500ms (balanced time)
   const debouncedSearch = useDebounce(searchTerm, 500);
-
-  // Medical lists of firebase
   const {data: doctors, isLoading: loadingDocs} = useDoctors();
-
-  // Persistent configuration (Firestore)
   const {data: availability} = useDoctorAvailability(
     selectedDoc?.id,
     selectedDate,
   );
-
-  // 3. Live status (Realtime Database)
   const realtimeSlots = useRealtimeSlots(selectedDoc?.id, selectedDate);
-
   const {mutate: saveAvailability} = useManageAvailability();
 
-  // Filter using the DEBOUNCED value
   const filteredDoctors = doctors?.filter(
     (doc) =>
       doc.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       doc.specialty.toLowerCase().includes(debouncedSearch.toLowerCase()),
   );
 
-  // ENABLE / DISABLE INDIVIDUAL SLOT
   const handleToggleSlot = async (time) => {
     if (!selectedDoc) return;
     const formattedTime = time.replace(":", "");
-
     const isTaken =
       realtimeSlots && realtimeSlots[formattedTime]?.status === "taken";
+
     if (isTaken) {
       alert("⚠️ No puedes modificar un horario ya agendado por un estudiante.");
       return;
@@ -74,8 +64,7 @@ const AppointmentsPage = () => {
         doctorId: selectedDoc.id,
         specialty: selectedDoc.specialty,
       });
-      const newSlot = {time, available: true, status: "free"};
-      newSlots = [...currentSlots, newSlot];
+      newSlots = [...currentSlots, {time, available: true, status: "free"}];
     }
 
     newSlots.sort((a, b) => a.time.localeCompare(b.time));
@@ -86,7 +75,6 @@ const AppointmentsPage = () => {
     });
   };
 
-  // ENABLE FULL DAY
   const handleEnableAll = async () => {
     if (!selectedDoc || !selectedDoc.baseSlots) return;
 
@@ -119,7 +107,6 @@ const AppointmentsPage = () => {
     });
 
     await Promise.all(promises);
-
     saveAvailability({
       doctorId: selectedDoc.id,
       date: selectedDate,
@@ -130,14 +117,11 @@ const AppointmentsPage = () => {
   if (loadingDocs) {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Sidebar Doctors Skeleton */}
         <div className="lg:col-span-1 space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
             <Skeleton key={i} className="h-20 w-full rounded-2xl" />
           ))}
         </div>
-
-        {/* Main Grid Skeleton */}
         <div className="lg:col-span-3 bg-white rounded-[2.5rem] p-8 border border-slate-100">
           <div className="flex justify-between mb-8">
             <div className="space-y-2">
@@ -162,7 +146,8 @@ const AppointmentsPage = () => {
         placeholder="Buscar médico o área..."
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        btnText={null}
+        btnText="Habilitar Jornada"
+        onAddClick={handleEnableAll}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -175,11 +160,7 @@ const AppointmentsPage = () => {
               <button
                 key={doc.id}
                 onClick={() => setSelectedDoc(doc)}
-                className={`text-left p-4 rounded-2xl transition-all ${
-                  selectedDoc?.id === doc.id
-                    ? "bg-[#137fec] text-white shadow-lg translate-x-1"
-                    : "bg-slate-50 hover:bg-slate-100 text-slate-600"
-                }`}
+                className={`text-left p-4 rounded-2xl transition-all ${selectedDoc?.id === doc.id ? "bg-[#137fec] text-white shadow-lg translate-x-1" : "bg-slate-50 hover:bg-slate-100 text-slate-600"}`}
               >
                 <p className="text-xs font-black uppercase truncate">
                   {doc.name}
@@ -189,11 +170,6 @@ const AppointmentsPage = () => {
                 </p>
               </button>
             ))}
-            {filteredDoctors?.length === 0 && (
-              <p className="text-center text-[10px] text-slate-400 font-bold mt-10">
-                No hay resultados
-              </p>
-            )}
           </div>
         </div>
 
@@ -209,43 +185,27 @@ const AppointmentsPage = () => {
                     Cons. {selectedDoc.office}
                   </p>
                 </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleEnableAll}
-                    className="px-5 py-2.5 bg-green-500 text-white text-[9px] font-black uppercase rounded-xl hover:bg-green-600 transition-all"
-                  >
-                    Habilitar Jornada
-                  </button>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="px-4 py-2 bg-slate-50 rounded-xl text-xs font-black outline-none ring-1 ring-slate-100"
-                  />
-                </div>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-4 py-2 bg-slate-50 rounded-xl text-xs font-black outline-none ring-1 ring-slate-100"
+                />
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {selectedDoc.baseSlots?.map((time) => {
                   const formattedTime = time.replace(":", "");
-                  const slotInRealtime = realtimeSlots
-                    ? realtimeSlots[formattedTime]
-                    : null;
-
-                  const isTaken = slotInRealtime?.status === "taken";
-                  const isActive = slotInRealtime?.status === "available";
+                  const isTaken =
+                    realtimeSlots?.[formattedTime]?.status === "taken";
+                  const isActive =
+                    realtimeSlots?.[formattedTime]?.status === "available";
 
                   return (
                     <button
                       key={time}
                       onClick={() => handleToggleSlot(time)}
-                      className={`p-6 rounded-[2rem] border-2 transition-all duration-300 relative ${
-                        isTaken
-                          ? "bg-red-500 border-red-600 text-white shadow-lg cursor-not-allowed"
-                          : isActive
-                            ? "bg-white border-[#137fec] text-[#137fec] shadow-md hover:scale-105"
-                            : "bg-slate-50 border-transparent text-slate-300 opacity-40 hover:opacity-100"
-                      }`}
+                      className={`p-6 rounded-[2rem] border-2 transition-all duration-300 relative ${isTaken ? "bg-red-500 border-red-600 text-white shadow-lg cursor-not-allowed" : isActive ? "bg-white border-[#137fec] text-[#137fec] shadow-md hover:scale-105" : "bg-slate-50 border-transparent text-slate-300 opacity-40 hover:opacity-100"}`}
                     >
                       <span className="text-lg font-black">{time}</span>
                       <div className="flex items-center justify-center gap-1.5 mt-2">
