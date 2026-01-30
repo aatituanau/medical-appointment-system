@@ -4,9 +4,10 @@ import StatusAlert from "../../components/ui/StatusAlert";
 import Calendar from "../../components/ui/Calendar";
 import DoctorSelectionCard from "../../components/ui/DoctorSelectionCard";
 import AppointmentSummary from "../../components/ui/AppointmentSummary";
-import TimeSlotGrid from "../../components/ui/TimeSlotGrid";
 import emailjs from "@emailjs/browser";
 import uce from "../../assets/uce.png";
+import ConsultationForm from "./components/ConsultationForm";
+import AvailableSlots from "./components/AvailableSlots";
 
 // Hooks of conection to medical data
 import {useDoctors} from "../../hooks/useDoctors";
@@ -135,62 +136,16 @@ const ScheduleAppointment = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-3">
-              <span className="size-7 bg-blue-50 text-[#137fec] rounded-xl flex items-center justify-center text-xs font-black">
-                1
-              </span>
-              Datos de la consulta
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
-                  Especialidad
-                </label>
-                <select
-                  value={specialty}
-                  onChange={(e) => {
-                    setSpecialty(e.target.value);
-                    setSelectedDocObj(null);
-                    setSelectedTime("");
-                  }}
-                  className="w-full h-12 bg-slate-50 border border-slate-100 rounded-2xl px-4 text-sm outline-none focus:ring-2 focus:ring-[#137fec]/20"
-                >
-                  <option value="">Seleccione especialidad</option>
-                  {specialties
-                    ?.filter((s) => s.active)
-                    .map((s) => (
-                      <option key={s.id} value={s.name}>
-                        {s.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">
-                  Médico
-                </label>
-                <select
-                  value={selectedDocObj?.name || ""}
-                  onChange={(e) => {
-                    const doc = filteredDoctors.find(
-                      (d) => d.name === e.target.value,
-                    );
-                    setSelectedDocObj(doc);
-                    setSelectedTime("");
-                  }}
-                  className="w-full h-12 bg-slate-50 border border-slate-100 rounded-2xl px-4 text-sm outline-none focus:ring-2 focus:ring-[#137fec]/20"
-                >
-                  <option value="">Seleccione un médico</option>
-                  {filteredDoctors?.map((d) => (
-                    <option key={d.id} value={d.name}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+          {/* Component ConsultationForm */}
+          <ConsultationForm
+            specialty={specialty}
+            setSpecialty={setSpecialty}
+            selectedDocObj={selectedDocObj}
+            setSelectedDocObj={setSelectedDocObj}
+            setSelectedTime={setSelectedTime}
+            specialties={specialties}
+            filteredDoctors={filteredDoctors}
+          />
 
           <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <h3 className="font-bold text-slate-800 text-sm mb-6 flex items-center gap-3">
@@ -215,28 +170,12 @@ const ScheduleAppointment = () => {
             image={selectedDocObj?.image || uce}
           />
 
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-8">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center justify-between">
-              <span className="flex items-center gap-3">
-                <span className="size-7 bg-blue-50 text-[#137fec] rounded-xl flex items-center justify-center text-xs font-black">
-                  3
-                </span>
-                Horarios Disponibles
-              </span>
-            </h3>
-
-            {realtimeSlots ? (
-              <TimeSlotGrid
-                slots={Object.values(realtimeSlots)}
-                selectedSlot={selectedTime}
-                onSelect={setSelectedTime}
-              />
-            ) : (
-              <p className="text-center text-[10px] font-black text-slate-300 uppercase py-10 tracking-widest italic">
-                No hay turnos habilitados por el administrador
-              </p>
-            )}
-          </div>
+          {/* Component Hours */}
+          <AvailableSlots
+            realtimeSlots={realtimeSlots}
+            selectedTime={selectedTime}
+            setSelectedTime={setSelectedTime}
+          />
 
           <AppointmentSummary
             date={selectedDate}

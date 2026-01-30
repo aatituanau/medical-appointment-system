@@ -1,6 +1,4 @@
 import React, {useState, useMemo} from "react";
-import Skeleton from "../../components/ui/Skeleton";
-import StatCard from "../../components/ui-admin/StatCard";
 import ReportCharts from "../../components/ui-admin/ReportCharts";
 import AppointmentsTable from "../../components/ui-admin/AppointmentsTable";
 import {useAllAppointmentsRealtime} from "../../hooks/useAppointments";
@@ -15,6 +13,8 @@ import {
   BarElement,
   Title,
 } from "chart.js";
+import ReportsSkeleton from "../../components/skeletons/ReportsSkeleton";
+import StatsOverview from "./components/StatsOverview";
 
 ChartJS.register(
   ArcElement,
@@ -118,16 +118,7 @@ const ReportsPage = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="p-8 space-y-8 animate-pulse">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Skeleton className="h-32 rounded-[2rem]" />
-          <Skeleton className="h-32 rounded-[2rem]" />
-          <Skeleton className="h-32 rounded-[2rem]" />
-        </div>
-        <Skeleton className="h-96 w-full rounded-[3rem]" />
-      </div>
-    );
+    return <ReportsSkeleton />;
   }
 
   const totalPages = Math.ceil(stats.filteredList.length / itemsPerPage);
@@ -150,23 +141,11 @@ const ReportsPage = () => {
       </header>
 
       {/* Global Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard
-          label="Total Histórico"
-          value={stats.total}
-          color="bg-blue-600"
-        />
-        <StatCard
-          label="Total Confirmadas"
-          value={stats.confirmed}
-          color="bg-emerald-500"
-        />
-        <StatCard
-          label="Total Canceladas"
-          value={stats.cancelled}
-          color="bg-rose-500"
-        />
-      </div>
+      <StatsOverview
+        total={stats.total}
+        confirmed={stats.confirmed}
+        cancelled={stats.cancelled}
+      />
 
       {/* Analysis Charts (Weekly Filtered) */}
       <ReportCharts

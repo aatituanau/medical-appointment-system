@@ -4,10 +4,11 @@ import {
   useUserAppointments,
   useCancelAppointment,
 } from "../../hooks/useAppointments";
-import Skeleton from "../../components/ui/Skeleton";
 import Swal from "sweetalert2";
 import AppointmentCard from "../../components/ui/AppointmentCard";
 import ReportFilters from "../../components/ui-admin/ReportFilters";
+import AppointmentsSkeleton from "../../components/skeletons/AppointmentsSkeleton";
+import PaginationControls from "./components/PaginationControls";
 
 const MyAppointments = () => {
   const {user} = useAuth();
@@ -102,7 +103,7 @@ const MyAppointments = () => {
     });
   };
 
-  if (isLoading) return <LoadingSkeleton />;
+  if (isLoading) return <AppointmentsSkeleton />;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
@@ -171,66 +172,13 @@ const MyAppointments = () => {
         )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-3 pt-8">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-            className="p-3 rounded-2xl bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all text-slate-600"
-          >
-            ←
-          </button>
-
-          <div className="flex gap-2">
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`w-12 h-12 rounded-2xl text-xs font-black transition-all ${
-                  currentPage === i + 1
-                    ? "bg-slate-800 text-white shadow-lg scale-110"
-                    : "bg-white text-slate-400 border border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-            className="p-3 rounded-2xl bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all text-slate-600"
-          >
-            →
-          </button>
-        </div>
-      )}
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };
-
-const LoadingSkeleton = () => (
-  <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
-    <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
-      <Skeleton className="h-10 w-48 mb-4" />
-      <Skeleton className="h-3 w-64" />
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {[1, 2, 3, 4].map((i) => (
-        <div
-          key={i}
-          className="bg-white p-10 rounded-[3.5rem] border-2 border-slate-50 space-y-8"
-        >
-          <Skeleton className="size-24 rounded-[2.5rem]" />
-          <div className="space-y-4">
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 export default MyAppointments;

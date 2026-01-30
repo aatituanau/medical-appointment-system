@@ -4,8 +4,10 @@ import {useDebounce} from "../../hooks/useDebounce";
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import MedicalModal from "../../components/ui-admin/MedicalModal";
 import MedicalForm from "../../components/ui-admin/MedicalForm";
-import {getSpecialtyIcon} from "../../utils/specialtyIcons";
-import Skeleton from "../../components/ui/Skeleton"; // 1. Import skeleton component
+
+// Importamos los nuevos componentes extraídos
+import SpecialtiesSkeleton from "../../components/skeletons/SpecialtiesSkeleton";
+import SpecialtiesTable from "./components/SpecialtiesTable";
 
 const SpecialtiesPage = () => {
   // --- STATES ---
@@ -76,50 +78,21 @@ const SpecialtiesPage = () => {
     setIsModalOpen(false);
   };
 
+  // Handler para confirmación de eliminación
+  const handleDeleteClick = (spec) => {
+    if (confirm(`¿Borrar ${spec.name}?`)) {
+      deleteSpecialty(spec.id);
+    }
+  };
+
   // --- FILTER LOGIC ---
   const filteredSpecs = specialties?.filter((s) =>
     s.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
   );
 
-  // --- 2. SKELETON LOADING STATE ---
+  // --- VIEW RENDER ---
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        {/* Header Skeleton */}
-        <div className="bg-white p-4 rounded-[2rem] border border-slate-100 flex gap-4">
-          <Skeleton className="h-12 w-full max-w-md rounded-2xl" />
-          <Skeleton className="h-12 w-40 rounded-2xl" />
-        </div>
-
-        {/* Table Content Skeleton */}
-        <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 overflow-hidden">
-          <div className="p-8 space-y-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between py-4 border-b border-slate-50 last:border-0"
-              >
-                <div className="flex items-center gap-6">
-                  <Skeleton className="size-12 rounded-xl" /> {/* Icon space */}
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-40" /> {/* Title space */}
-                    <Skeleton className="h-3 w-64 hidden md:block" />{" "}
-                    {/* Desc space */}
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <Skeleton className="h-8 w-20 rounded-full" />{" "}
-                  {/* Status space */}
-                  <Skeleton className="size-8 rounded-lg" />{" "}
-                  {/* Action space */}
-                  <Skeleton className="size-8 rounded-lg" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <SpecialtiesSkeleton />;
   }
 
   return (
@@ -149,7 +122,7 @@ const SpecialtiesPage = () => {
 
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 mt-4">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Estado de Visibilidad
+              Estado de la Especialidad
             </span>
             <div className="flex items-center gap-3">
               <span
@@ -172,97 +145,12 @@ const SpecialtiesPage = () => {
         </div>
       </MedicalModal>
 
-      <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left min-w-[500px] md:min-w-full">
-            <thead className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              <tr>
-                <th className="px-4 md:px-8 py-5">Icono</th>
-                <th className="px-4 md:px-8 py-5">Especialidad</th>
-                <th className="px-4 md:px-8 py-5 hidden lg:table-cell">
-                  Descripción
-                </th>
-                <th className="px-4 md:px-8 py-5">Estado</th>
-                <th className="px-4 md:px-8 py-5 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filteredSpecs?.map((spec) => (
-                <tr
-                  key={spec.id}
-                  className="hover:bg-slate-50/50 transition-colors group"
-                >
-                  <td className="px-4 md:px-8 py-5">
-                    <div className="size-10 md:size-12 bg-blue-50/50 rounded-xl flex items-center justify-center text-[#137fec]">
-                      <span className="material-symbols-outlined text-xl md:text-2xl">
-                        {getSpecialtyIcon(spec.name)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 md:px-8 py-5">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-black text-slate-800 uppercase italic leading-tight">
-                        {spec.name}
-                      </span>
-                      <span className="lg:hidden text-[10px] text-slate-400 font-medium truncate max-w-[150px] mt-1">
-                        {spec.description || "Sin descripción"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 md:px-8 py-5 text-xs font-medium text-slate-500 max-w-xs truncate hidden lg:table-cell">
-                    {spec.description}
-                  </td>
-                  <td className="px-4 md:px-8 py-5">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`size-1.5 rounded-full ${spec.active ? "bg-green-500" : "bg-red-500"}`}
-                      ></div>
-                      <span className="text-[9px] md:text-[10px] font-bold text-slate-600 uppercase">
-                        {spec.active ? "Activa" : "Inactiva"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 md:px-8 py-5 text-right whitespace-nowrap">
-                    <div className="flex justify-end gap-1">
-                      <button
-                        onClick={() => handleOpenModal(spec)}
-                        className="p-2 text-slate-300 hover:text-blue-500 transition-all hover:scale-110"
-                        title="Edit Specialty"
-                      >
-                        <span className="material-icons-outlined text-xl">
-                          edit
-                        </span>
-                      </button>
-                      <button
-                        onClick={() =>
-                          confirm(`¿Borrar ${spec.name}?`) &&
-                          deleteSpecialty(spec.id)
-                        }
-                        className="p-2 text-slate-300 hover:text-red-500 transition-all hover:scale-110"
-                        title="Delete Specialty"
-                      >
-                        <span className="material-icons-outlined text-xl">
-                          delete
-                        </span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredSpecs?.length === 0 && (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="px-8 py-10 text-center text-slate-400 font-bold uppercase text-[10px] tracking-widest"
-                  >
-                    No results found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Componente de Tabla Extraído */}
+      <SpecialtiesTable
+        specialties={filteredSpecs}
+        onEdit={handleOpenModal}
+        onDelete={handleDeleteClick}
+      />
     </div>
   );
 };
