@@ -1,8 +1,8 @@
 import React, {useState, useEffect} from "react";
 import {useForm} from "react-hook-form";
 import {Link, useNavigate} from "react-router-dom";
-import {zodResolver} from "@hookform/resolvers/zod"; // IMPORTANTE
-import {loginSchema} from "../../schemas/authSchema"; // IMPORTANTE
+import {zodResolver} from "@hookform/resolvers/zod";
+import {loginSchema} from "../../schemas/authSchema";
 import {auth, db} from "../../firebase/config";
 import {
   signInWithEmailAndPassword,
