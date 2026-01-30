@@ -11,74 +11,100 @@ const ReportFilters = ({
     const end = new Date().toISOString().split("T")[0];
     const start = new Date();
     start.setDate(start.getDate() - days);
-    setDateRange({start: start.toISOString().split("T")[0], end});
+    const startStr = start.toISOString().split("T")[0];
+
+    setDateRange({start: startStr, end});
     setCurrentPage(1);
   };
 
+  // Fuction for verifying if a preset is active
+  const isPresetActive = (days) => {
+    const end = new Date().toISOString().split("T")[0];
+    const start = new Date();
+    start.setDate(start.getDate() - days);
+    const startStr = start.toISOString().split("T")[0];
+
+    return dateRange.start === startStr && dateRange.end === end;
+  };
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 pt-2">
-      {/* Date Shortcuts */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">
-          Citas de:
-        </span>
-        {[
-          {l: "Hoy", d: 0},
-          {l: "7 Días", d: 7},
-          {l: "Este Mes", d: 30},
-        ].map((p) => (
-          <button
-            key={p.l}
-            onClick={() => handlePreset(p.d)}
-            className="px-3 py-1.5 rounded-lg bg-slate-50 text-[10px] font-bold text-slate-600 hover:bg-slate-200 transition-colors"
-          >
-            {p.l}
-          </button>
-        ))}
+    <div className="flex flex-col gap-6 w-full">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Período:
+          </span>
+          <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100 shadow-inner">
+            {[
+              {l: "Hoy", d: 0},
+              {l: "7d", d: 7},
+              {l: "30d", d: 30},
+            ].map((p) => {
+              const active = isPresetActive(p.d);
+              return (
+                <button
+                  key={p.l}
+                  onClick={() => handlePreset(p.d)}
+                  className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
+                    active
+                      ? "bg-white text-blue-600 shadow-sm scale-105"
+                      : "text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  {p.l}
+                </button>
+              );
+            })}
+          </div>
 
-        <div className="h-4 w-px bg-slate-200 mx-2 hidden md:block"></div>
+          <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
-        {/* Calendar */}
-        <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100">
-          <input
-            type="date"
-            className="bg-transparent text-[10px] font-bold text-slate-600 outline-none cursor-pointer"
-            value={dateRange.start}
-            onChange={(e) =>
-              setDateRange({...dateRange, start: e.target.value})
-            }
-          />
-          <span className="text-slate-300">→</span>
-          <input
-            type="date"
-            className="bg-transparent text-[10px] font-bold text-slate-600 outline-none cursor-pointer"
-            value={dateRange.end}
-            onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 lg:justify-end">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">
-          Estado:
-        </span>
-        <div className="flex bg-slate-100 p-1 rounded-xl shadow-inner">
-          {["todos", "confirmada", "cancelada"].map((s) => (
-            <button
-              key={s}
-              onClick={() => {
-                setFilterStatus(s);
+          {/* Calendar */}
+          <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 shadow-inner">
+            <input
+              type="date"
+              className="bg-transparent text-[10px] font-bold text-slate-600 outline-none cursor-pointer"
+              value={dateRange.start}
+              onChange={(e) => {
+                setDateRange({...dateRange, start: e.target.value});
                 setCurrentPage(1);
               }}
-              className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${
-                filterStatus === s
-                  ? "bg-white text-slate-800 shadow-md"
-                  : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+            />
+            <span className="text-slate-300 font-bold">→</span>
+            <input
+              type="date"
+              className="bg-transparent text-[10px] font-bold text-slate-600 outline-none cursor-pointer"
+              value={dateRange.end}
+              onChange={(e) => {
+                setDateRange({...dateRange, end: e.target.value});
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Estado:
+          </span>
+          <div className="flex bg-slate-100 p-1 rounded-2xl shadow-inner border border-slate-200/50">
+            {["todos", "confirmada", "cancelada"].map((s) => (
+              <button
+                key={s}
+                onClick={() => {
+                  setFilterStatus(s);
+                  setCurrentPage(1);
+                }}
+                className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${
+                  filterStatus === s
+                    ? "bg-white text-slate-800 shadow-md scale-105"
+                    : "text-slate-400 hover:text-slate-600"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

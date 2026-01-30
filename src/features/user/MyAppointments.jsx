@@ -1,4 +1,4 @@
-import React, {useMemo} from "react";
+import React, {useState, useMemo} from "react";
 import {useAuth} from "../../context/AuthContext";
 import {
   useUserAppointments,
@@ -7,9 +7,17 @@ import {
 import Skeleton from "../../components/ui/Skeleton";
 import Swal from "sweetalert2";
 import AppointmentCard from "../../components/ui/AppointmentCard";
+import ReportFilters from "../../components/ui-admin/ReportFilters";
 
 const MyAppointments = () => {
   const {user} = useAuth();
+
+  // 1. State for Filters and Pagination
+  const [filterStatus, setFilterStatus] = useState("todos");
+  const [dateRange, setDateRange] = useState({start: "", end: ""});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   const {data: appointments, isLoading} = useUserAppointments(user?.uid);
   const {mutate: cancelAppointment} = useCancelAppointment();
 
@@ -24,22 +32,39 @@ const MyAppointments = () => {
     return appointmentDateTime - now >= 86400000;
   };
 
-  const sortedAppointments = useMemo(() => {
+  // 2. Filtering Logic
+  const filteredAppointments = useMemo(() => {
     if (!appointments) return [];
-    return [...appointments].sort((a, b) => {
-      const dateA = new Date(a.date + "T00:00:00");
-      const dateB = new Date(b.date + "T00:00:00");
-      return dateB - dateA !== 0
-        ? dateB - dateA
-        : parseInt(b.time) - parseInt(a.time);
-    });
-  }, [appointments]);
 
-  const getMonthName = (dateStr) => {
-    return new Date(dateStr + "T00:00:00").toLocaleString("es-ES", {
-      month: "long",
-    });
-  };
+    let filtered = [...appointments];
+
+    if (filterStatus !== "todos") {
+      filtered = filtered.filter(
+        (a) => a.status?.toLowerCase() === filterStatus.toLowerCase(),
+      );
+    }
+
+    if (dateRange.start && dateRange.end) {
+      filtered = filtered.filter((a) => {
+        const appDate = new Date(a.date);
+        const start = new Date(dateRange.start);
+        const end = new Date(dateRange.end);
+        appDate.setHours(0, 0, 0, 0);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+        return appDate >= start && appDate <= end;
+      });
+    }
+
+    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [appointments, filterStatus, dateRange]);
+
+  // 3. Pagination Logic
+  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+  const currentItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAppointments.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAppointments, currentPage, itemsPerPage]);
 
   const handleCancelClick = (cita) => {
     if (!canCancel(cita.date, cita.time)) {
@@ -48,7 +73,6 @@ const MyAppointments = () => {
         text: "Mínimo 24 horas de anticipación.",
         icon: "error",
         confirmButtonColor: "#137fec",
-        borderRadius: "2rem",
       });
       return;
     }
@@ -60,7 +84,6 @@ const MyAppointments = () => {
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
       confirmButtonText: "Sí, cancelar",
-      borderRadius: "2rem",
     }).then((result) => {
       if (result.isConfirmed) {
         cancelAppointment(
@@ -72,67 +95,142 @@ const MyAppointments = () => {
           },
           {
             onSuccess: () =>
-              Swal.fire({
-                title: "Cita Anulada",
-                icon: "success",
-                confirmButtonColor: "#137fec",
-              }),
+              Swal.fire({title: "Cita Anulada", icon: "success"}),
           },
         );
       }
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
-        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
-          <Skeleton className="h-10 w-48 mb-4" />
-          <Skeleton className="h-3 w-64" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="bg-white p-10 rounded-[3.5rem] border-2 border-slate-50 space-y-8"
-            >
-              <Skeleton className="size-24 rounded-[2.5rem]" />
-              <div className="space-y-4">
-                <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <LoadingSkeleton />;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
-      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
-        <h1 className="text-4xl font-black text-slate-800 uppercase italic leading-none">
-          Mis Citas
-        </h1>
-        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
-          Historial del Hospital del Día UCE
-        </p>
+      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-4xl font-black text-slate-800 uppercase italic leading-none">
+              Mis Citas
+            </h1>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
+              Historial del Hospital del Día UCE
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setFilterStatus("todos");
+              setDateRange({start: "", end: ""});
+              setCurrentPage(1);
+            }}
+            className="text-[10px] font-black text-blue-600 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 active:scale-95 transition-all"
+          >
+            Limpiar Filtros
+          </button>
+        </div>
+
+        <div className="pt-4 border-t border-slate-50">
+          <ReportFilters
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            setCurrentPage={setCurrentPage}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {sortedAppointments.map((cita) => (
-          <AppointmentCard
-            key={cita.id}
-            cita={cita}
-            user={user}
-            onCancel={handleCancelClick}
-            canCancelFn={canCancel}
-            getMonthNameFn={getMonthName}
-          />
-        ))}
+        {currentItems.map((cita) => {
+          const isPast = new Date(cita.date + "T23:59:59") < new Date();
+          return (
+            <div
+              key={cita.id}
+              className={isPast ? "opacity-60 grayscale-[0.5]" : ""}
+            >
+              <AppointmentCard
+                cita={cita}
+                user={user}
+                onCancel={handleCancelClick}
+                canCancelFn={canCancel}
+                getMonthNameFn={(d) =>
+                  new Date(d + "T00:00:00").toLocaleString("es-ES", {
+                    month: "long",
+                  })
+                }
+              />
+            </div>
+          );
+        })}
+
+        {currentItems.length === 0 && (
+          <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border border-dashed border-slate-200">
+            <p className="text-slate-400 font-black uppercase text-xs tracking-widest italic">
+              No se encontraron citas
+            </p>
+          </div>
+        )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-3 pt-8">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            className="p-3 rounded-2xl bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all text-slate-600"
+          >
+            ←
+          </button>
+
+          <div className="flex gap-2">
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`w-12 h-12 rounded-2xl text-xs font-black transition-all ${
+                  currentPage === i + 1
+                    ? "bg-slate-800 text-white shadow-lg scale-110"
+                    : "bg-white text-slate-400 border border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            className="p-3 rounded-2xl bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all text-slate-600"
+          >
+            →
+          </button>
+        </div>
+      )}
     </div>
   );
 };
+
+const LoadingSkeleton = () => (
+  <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
+    <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
+      <Skeleton className="h-10 w-48 mb-4" />
+      <Skeleton className="h-3 w-64" />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="bg-white p-10 rounded-[3.5rem] border-2 border-slate-50 space-y-8"
+        >
+          <Skeleton className="size-24 rounded-[2.5rem]" />
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 export default MyAppointments;
