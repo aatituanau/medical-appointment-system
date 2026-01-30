@@ -1,10 +1,10 @@
 import React, {useState} from "react";
+import {useDoctors} from "../../hooks/useDoctors";
 import {
-  useDoctors,
   useDoctorAvailability,
   useManageAvailability,
-  useRealtimeSlots,
-} from "../../hooks/useMedicalData";
+} from "../../hooks/useAvailability";
+import {useRealtimeSlots} from "../../hooks/useRealtimeSlots";
 import {useDebounce} from "../../hooks/useDebounce";
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import {ref, set} from "firebase/database";

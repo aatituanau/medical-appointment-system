@@ -1,6 +1,6 @@
 import React from "react";
 import {useNavigate} from "react-router-dom";
-import {useSpecialties} from "../../hooks/useMedicalData";
+import {useSpecialties} from "../../hooks/useSpecialties";
 import {getSpecialtyIcon} from "../../utils/specialtyIcons";
 import SpecialtyCard from "../../components/ui/SpecialtyCard";
 

@@ -3,7 +3,7 @@ import Skeleton from "../../components/ui/Skeleton";
 import StatCard from "../../components/ui-admin/StatCard";
 import ReportCharts from "../../components/ui-admin/ReportCharts";
 import AppointmentsTable from "../../components/ui-admin/AppointmentsTable";
-import {useAllAppointmentsRealtime} from "../../hooks/useMedicalData";
+import {useAllAppointmentsRealtime} from "../../hooks/useAppointments";
 import {downloadAppointmentsExcel} from "../../utils/excelGenerator";
 import {
   Chart as ChartJS,
