@@ -10,6 +10,7 @@ import {
   query,
   where,
   limit,
+  onSnapshot,
 } from "firebase/firestore";
 import {ref, update, onValue, set, runTransaction} from "firebase/database";
 import {db, rtdb} from "../firebase/config";
@@ -252,5 +253,31 @@ export const useCancelAppointment = () => {
       queryClient.invalidateQueries(["userAppointments"]);
       queryClient.invalidateQueries(["realtimeSlots"]);
     },
+  });
+};
+// --- ALL APPOINTMENTS REALTIME (ADMIN) ---
+export const useAllAppointmentsRealtime = () => {
+  const queryClient = useQueryClient();
+
+  return useQuery({
+    queryKey: ["allAppointments"],
+    queryFn: () => {
+      // This function runs initially
+      return new Promise((resolve) => {
+        const q = query(collection(db, "appointments"));
+        onSnapshot(q, (snapshot) => {
+          const appointments = snapshot.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+          }));
+          // synchronize the TanStack cache with Firebase data
+          queryClient.setQueryData(["allAppointments"], appointments);
+          resolve(appointments);
+        });
+      });
+    },
+    // Important: we prevent TanStack from attempting to refetch on its own
+    // onSnapshot already takes care of keeping it alive.
+    staleTime: Infinity,
   });
 };
