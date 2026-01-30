@@ -7,7 +7,7 @@ const ScheduleManager = ({
   realtimeSlots,
   onToggleSlot,
 }) => {
-  // Estado vacío: Cuando no se ha seleccionado médico
+  // Statement to show when no doctor is selected
   if (!selectedDoc) {
     return (
       <div className="lg:col-span-3 bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
@@ -24,7 +24,6 @@ const ScheduleManager = ({
   return (
     <div className="lg:col-span-3 bg-white rounded-[2.5rem] border border-slate-100 p-8 shadow-sm">
       <div className="space-y-8">
-        {/* Header del Gestor: Nombre + Selector de Fecha */}
         <div className="flex justify-between items-center border-b border-slate-50 pb-6">
           <div>
             <h2 className="text-xl font-black text-slate-800 uppercase italic">
@@ -42,7 +41,6 @@ const ScheduleManager = ({
           />
         </div>
 
-        {/* Grilla de Botones (Slots) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {selectedDoc.baseSlots?.map((time) => {
             const formattedTime = time.replace(":", "");

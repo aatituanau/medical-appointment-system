@@ -5,8 +5,6 @@ import {useDebounce} from "../../hooks/useDebounce";
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import MedicalModal from "../../components/ui-admin/MedicalModal";
 import MedicalForm from "../../components/ui-admin/MedicalForm";
-
-// Importamos los nuevos componentes extraídos
 import DoctorsSkeleton from "../../components/skeletons/DoctorsSkeleton";
 import DoctorsTable from "./components/DoctorsTable";
 
@@ -62,7 +60,7 @@ const DoctorsPage = () => {
     setIsModalOpen(false);
   };
 
-  // Handler para la confirmación de eliminación
+  // Handler for the delete action
   const handleDeleteClick = (doc) => {
     if (confirm(`¿Está seguro de eliminar al ${doc.name}?`)) {
       deleteItem(doc.id);

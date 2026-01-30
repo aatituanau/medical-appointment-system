@@ -4,8 +4,6 @@ import {useDebounce} from "../../hooks/useDebounce";
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import MedicalModal from "../../components/ui-admin/MedicalModal";
 import MedicalForm from "../../components/ui-admin/MedicalForm";
-
-// Importamos los nuevos componentes extraídos
 import SpecialtiesSkeleton from "../../components/skeletons/SpecialtiesSkeleton";
 import SpecialtiesTable from "./components/SpecialtiesTable";
 
@@ -78,7 +76,7 @@ const SpecialtiesPage = () => {
     setIsModalOpen(false);
   };
 
-  // Handler para confirmación de eliminación
+  // Handler for the delete action
   const handleDeleteClick = (spec) => {
     if (confirm(`¿Borrar ${spec.name}?`)) {
       deleteSpecialty(spec.id);
@@ -145,7 +143,6 @@ const SpecialtiesPage = () => {
         </div>
       </MedicalModal>
 
-      {/* Componente de Tabla Extraído */}
       <SpecialtiesTable
         specialties={filteredSpecs}
         onEdit={handleOpenModal}

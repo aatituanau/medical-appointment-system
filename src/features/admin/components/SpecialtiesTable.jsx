@@ -1,5 +1,4 @@
 import React from "react";
-// Ajustamos la ruta para salir de: components -> admin -> features -> src -> utils
 import {getSpecialtyIcon} from "../../../utils/specialtyIcons";
 
 const SpecialtiesTable = ({specialties, onEdit, onDelete}) => {
