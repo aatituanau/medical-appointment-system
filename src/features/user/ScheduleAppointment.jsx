@@ -9,12 +9,10 @@ import emailjs from "@emailjs/browser";
 import uce from "../../assets/uce.png";
 
 // Hooks of conection to medical data
-import {
-  useDoctors,
-  useSpecialties,
-  useRealtimeSlots,
-  useBookSlot,
-} from "../../hooks/useMedicalData";
+import {useDoctors} from "../../hooks/useDoctors";
+import {useSpecialties} from "../../hooks/useSpecialties";
+import {useRealtimeSlots} from "../../hooks/useRealtimeSlots";
+import {useBookSlot} from "../../hooks/useAppointments";
 import {useAuth} from "../../context/AuthContext";
 
 const ScheduleAppointment = () => {

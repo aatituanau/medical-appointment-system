@@ -1,5 +1,6 @@
 import React, {useState} from "react";
-import {useDoctors, useSpecialties} from "../../hooks/useMedicalData";
+import {useDoctors} from "../../hooks/useDoctors";
+import {useSpecialties} from "../../hooks/useSpecialties";
 import {useDebounce} from "../../hooks/useDebounce";
 import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
 import MedicalModal from "../../components/ui-admin/MedicalModal";

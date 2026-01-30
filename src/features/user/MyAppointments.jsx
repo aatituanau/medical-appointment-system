@@ -3,7 +3,7 @@ import {useAuth} from "../../context/AuthContext";
 import {
   useUserAppointments,
   useCancelAppointment,
-} from "../../hooks/useMedicalData";
+} from "../../hooks/useAppointments";
 import Skeleton from "../../components/ui/Skeleton";
 import Swal from "sweetalert2";
 import AppointmentCard from "../../components/ui/AppointmentCard";
