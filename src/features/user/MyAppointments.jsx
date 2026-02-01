@@ -1,139 +1,182 @@
-import React, {useMemo} from "react";
+import React, {useState, useMemo} from "react";
 import {useAuth} from "../../context/AuthContext";
-import {useUserAppointments} from "../../hooks/useMedicalData";
-import {generateAppointmentPDF} from "../../utils/pdfGenerator";
+import {
+  useUserAppointments,
+  useCancelAppointment,
+} from "../../hooks/useAppointments";
+import Swal from "sweetalert2";
+import AppointmentCard from "../../components/ui/AppointmentCard";
+import ReportFilters from "../../components/ui-admin/ReportFilters";
+import AppointmentsSkeleton from "../../components/skeletons/AppointmentsSkeleton";
+import PaginationControls from "./components/PaginationControls";
 
 const MyAppointments = () => {
   const {user} = useAuth();
+
+  // 1. State for Filters and Pagination
+  const [filterStatus, setFilterStatus] = useState("todos");
+  const [dateRange, setDateRange] = useState({start: "", end: ""});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   const {data: appointments, isLoading} = useUserAppointments(user?.uid);
+  const {mutate: cancelAppointment} = useCancelAppointment();
 
-  // DESCENDING ORDER: Most recent/future dates first
-  const sortedAppointments = useMemo(() => {
-    if (!appointments) return [];
-
-    return [...appointments].sort((a, b) => {
-      const dateA = new Date(a.date + "T00:00:00");
-      const dateB = new Date(b.date + "T00:00:00");
-
-      if (dateB - dateA !== 0) {
-        return dateB - dateA;
-      }
-      return parseInt(b.time) - parseInt(a.time);
-    });
-  }, [appointments]);
-
-  const getMonthName = (dateStr) => {
-    const date = new Date(dateStr + "T00:00:00");
-    return date.toLocaleString("es-ES", {month: "long"});
+  const canCancel = (appointmentDate, appointmentTime) => {
+    const formattedTime = appointmentTime
+      .padStart(4, "0")
+      .replace(/^(\d{2})(\d{2})$/, "$1:$2");
+    const appointmentDateTime = new Date(
+      `${appointmentDate}T${formattedTime}:00`,
+    );
+    const now = new Date();
+    return appointmentDateTime - now >= 86400000;
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-20 text-center font-black text-slate-400 uppercase animate-pulse italic">
-        Sincronizando historial...
-      </div>
-    );
-  }
+  // 2. Filtering Logic
+  const filteredAppointments = useMemo(() => {
+    if (!appointments) return [];
+
+    let filtered = [...appointments];
+
+    if (filterStatus !== "todos") {
+      filtered = filtered.filter(
+        (a) => a.status?.toLowerCase() === filterStatus.toLowerCase(),
+      );
+    }
+
+    if (dateRange.start && dateRange.end) {
+      filtered = filtered.filter((a) => {
+        const appDate = new Date(a.date);
+        const start = new Date(dateRange.start);
+        const end = new Date(dateRange.end);
+        appDate.setHours(0, 0, 0, 0);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+        return appDate >= start && appDate <= end;
+      });
+    }
+
+    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [appointments, filterStatus, dateRange]);
+
+  // 3. Pagination Logic
+  const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
+  const currentItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAppointments.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAppointments, currentPage, itemsPerPage]);
+
+  const handleCancelClick = (cita) => {
+    if (!canCancel(cita.date, cita.time)) {
+      Swal.fire({
+        title: "Cancelación denegada",
+        text: "Mínimo 24 horas de anticipación.",
+        icon: "error",
+        confirmButtonColor: "#137fec",
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: "¿Anular esta cita?",
+      text: "El horario quedará libre para otros.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      confirmButtonText: "Sí, cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        cancelAppointment(
+          {
+            appointmentId: cita.id,
+            doctorId: cita.doctorId,
+            date: cita.date,
+            time: cita.time,
+          },
+          {
+            onSuccess: () =>
+              Swal.fire({title: "Cita Anulada", icon: "success"}),
+          },
+        );
+      }
+    });
+  };
+
+  if (isLoading) return <AppointmentsSkeleton />;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
-      {/* HEADER */}
-      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
-        <h1 className="text-4xl font-black text-slate-800 uppercase italic leading-none">
-          Mis Citas
-        </h1>
-        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
-          {sortedAppointments?.length > 0
-            ? `Tienes ${sortedAppointments.length} citas registradas en el sistema`
-            : "No se encontraron citas agendadas"}
-        </p>
+      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-4xl font-black text-slate-800 uppercase italic leading-none">
+              Mis Citas
+            </h1>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
+              Historial del Hospital del Día UCE
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setFilterStatus("todos");
+              setDateRange({start: "", end: ""});
+              setCurrentPage(1);
+            }}
+            className="text-[10px] font-black text-blue-600 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100 active:scale-95 transition-all"
+          >
+            Limpiar Filtros
+          </button>
+        </div>
+
+        <div className="pt-4 border-t border-slate-50">
+          <ReportFilters
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            setCurrentPage={setCurrentPage}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {sortedAppointments?.map((cita) => (
-          <div
-            key={cita.id}
-            className="bg-white p-10 rounded-[3.5rem] border-2 border-slate-50 shadow-sm relative overflow-hidden group hover:shadow-2xl transition-all animate-fade-in"
-          >
-            {/* STATUS */}
-            <div className="absolute top-0 right-0 p-10">
-              <span className="bg-green-50 text-green-600 text-[9px] font-black px-5 py-2 rounded-full uppercase border border-green-100">
-                {cita.status || "CONFIRMADA"}
-              </span>
+        {currentItems.map((cita) => {
+          const isPast = new Date(cita.date + "T23:59:59") < new Date();
+          return (
+            <div
+              key={cita.id}
+              className={isPast ? "opacity-60 grayscale-[0.5]" : ""}
+            >
+              <AppointmentCard
+                cita={cita}
+                user={user}
+                onCancel={handleCancelClick}
+                canCancelFn={canCancel}
+                getMonthNameFn={(d) =>
+                  new Date(d + "T00:00:00").toLocaleString("es-ES", {
+                    month: "long",
+                  })
+                }
+              />
             </div>
+          );
+        })}
 
-            <div className="flex items-center gap-8">
-              <div className="size-24 bg-[#137fec] rounded-[2.5rem] flex flex-col items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                <span className="text-[10px] font-black uppercase opacity-60">
-                  {getMonthName(cita.date)}
-                </span>
-                <span className="text-3xl font-black italic leading-none">
-                  {cita.date.split("-")[2]}
-                </span>
-              </div>
-              <div>
-                <p className="text-2xl font-black text-slate-800 uppercase italic leading-none">
-                  {/* Format "0900" to "09:00" */}
-                  {cita.time
-                    .padStart(4, "0")
-                    .replace(/^(\d{2})(\d{2})$/, "$1:$2")}
-                </p>
-                <p className="text-[11px] font-black text-[#137fec] uppercase tracking-[0.1em] mt-3 tracking-widest">
-                  {cita.specialty}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-10 pt-10 border-t border-slate-50 flex justify-between items-end">
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic mb-2">
-                  Especialista & Consultorio
-                </p>
-                <p className="text-sm font-black text-slate-700 uppercase italic tracking-tight">
-                  {cita.doctorName}
-                </p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">
-                  Consultorio {cita.office} — UCE
-                </p>
-              </div>
-
-              {/* Generate PDF */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => generateAppointmentPDF(cita, user)}
-                  className="bg-blue-50 text-[#137fec] size-12 rounded-2xl hover:bg-[#137fec] hover:text-white transition-all flex items-center justify-center shadow-sm group/print"
-                  title="Descargar Comprobante PDF"
-                >
-                  <span className="material-symbols-outlined text-xl">
-                    print
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => alert("Función para cancelar...")}
-                  className="bg-red-50 text-red-600 size-12 rounded-2xl hover:bg-red-600 hover:text-white transition-all flex items-center justify-center shadow-sm"
-                  title="Cancelar"
-                >
-                  <span className="material-symbols-outlined text-xl">
-                    cancel
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {sortedAppointments?.length === 0 && (
-          <div className="col-span-full py-20 text-center bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
-            <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">
-              calendar_today
-            </span>
-            <p className="text-slate-400 font-black uppercase text-xs">
-              Aún no has realizado ningún agendamiento.
+        {currentItems.length === 0 && (
+          <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border border-dashed border-slate-200">
+            <p className="text-slate-400 font-black uppercase text-xs tracking-widest italic">
+              No se encontraron citas
             </p>
           </div>
         )}
       </div>
+
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };

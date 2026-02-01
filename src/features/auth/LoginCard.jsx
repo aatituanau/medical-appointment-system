@@ -1,6 +1,8 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {useForm} from "react-hook-form";
 import {Link, useNavigate} from "react-router-dom";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {loginSchema} from "../../schemas/authSchema";
 import {auth, db} from "../../firebase/config";
 import {
   signInWithEmailAndPassword,
@@ -16,7 +18,27 @@ import StatusAlert from "../../components/ui/StatusAlert";
 const LoginCard = () => {
   const navigate = useNavigate();
   const [alertInfo, setAlertInfo] = useState({show: false, msg: "", type: ""});
-  const {register, handleSubmit} = useForm();
+
+  // 1. Configure React Hook Form with Zod
+  const {
+    register,
+    handleSubmit,
+    formState: {errors},
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
+
+  // 2. Effect to show validation errors in the alert
+  useEffect(() => {
+    const errorMessages = Object.values(errors);
+    if (errorMessages.length > 0) {
+      setAlertInfo({
+        show: true,
+        msg: errorMessages[0].message,
+        type: "error",
+      });
+    }
+  }, [errors]);
 
   const handleLogin = async (data) => {
     try {
@@ -33,7 +55,6 @@ const LoginCard = () => {
         else navigate("/dashboard");
       }
     } catch (error) {
-      // CONSERVAMOS TU MENSAJE ORIGINAL
       setAlertInfo({
         show: true,
         msg: "Credenciales incorrectas. Verifica tu correo y contraseña.",
@@ -99,14 +120,14 @@ const LoginCard = () => {
               icon="mail"
               type="email"
               placeholder="usuario@uce.edu.ec"
-              {...register("email")}
+              {...register("email")} // Validate whith Zod
             />
             <InputField
               label="Contraseña"
               icon="lock"
               type="password"
               placeholder="******"
-              {...register("password")}
+              {...register("password")} // Validate whith Zod
             />
             <button
               type="submit"
@@ -131,7 +152,7 @@ const LoginCard = () => {
                 className="size-5"
                 src="https://www.google.com/favicon.ico"
               />
-              <span>Cuenta Google</span>
+              <span>Inicia sesión con Google</span>
             </button>
           </form>
           <div className="bg-slate-50 px-8 py-6 text-center border-t border-slate-100 text-sm">

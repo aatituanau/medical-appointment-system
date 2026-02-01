@@ -1,9 +1,34 @@
 import React, {useState, useEffect} from "react";
 
-const Calendar = ({onDateChange}) => {
+const Calendar = ({onDateChange, selected}) => {
   // Initialize with today's date
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // --- ZUSTAND INTEGRATION START ---
+  // Reconstruct the Date object from the 'selected' string prop to keep original comparison logic
+  let selectedDate = null;
+  if (selected) {
+    const [year, month, day] = selected.split("-").map(Number);
+    selectedDate = new Date(year, month - 1, day);
+  }
+
+  // Sync view when selected date changes externally
+  useEffect(() => {
+    if (selectedDate) {
+      // If selected date is in another month, update view
+      if (
+        selectedDate.getMonth() !== currentDate.getMonth() ||
+        selectedDate.getFullYear() !== currentDate.getFullYear()
+      ) {
+        setCurrentDate(new Date(selectedDate));
+      }
+    }
+  }, [selected]);
+  // --- ZUSTAND INTEGRATION END ---
+
+  // Get "Today" at 00:00:00 to compare correctly
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const days = ["L", "M", "X", "J", "V", "S", "D"];
 
@@ -35,15 +60,16 @@ const Calendar = ({onDateChange}) => {
   );
 
   const handleDateClick = (date) => {
-    // 0 = Sunday, 6 = Saturday
     const dayOfWeek = date.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    // If it is weekend, do nothing (blocked)
-    if (isWeekend) return;
+    // Check if the date is in the past
+    const isPast = date < today;
 
-    setSelectedDate(date);
-    // Format to YYYY-MM-DD for Firebase
+    // If it is weekend or past date, do nothing
+    if (isWeekend || isPast) return;
+
+    // setSelectedDate(date);
     const formattedDate = date.toISOString().split("T")[0];
     onDateChange(formattedDate);
   };
@@ -57,27 +83,26 @@ const Calendar = ({onDateChange}) => {
     setCurrentDate(newDate);
   };
 
-  // Month names in Spanish
   const monthName = currentDate.toLocaleString("es-ES", {month: "long"});
 
   return (
     <div className="w-full">
       {/* Header with month name and buttons */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <button
           onClick={() => changeMonth(-1)}
-          className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+          className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-xl transition-colors"
         >
           <span className="material-symbols-outlined text-sm text-slate-400">
             chevron_left
           </span>
         </button>
-        <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.2em]">
+        <h4 className="text-[10px] sm:text-[11px] font-black text-slate-800 uppercase tracking-[0.15em] sm:tracking-[0.2em]">
           {monthName} {currentDate.getFullYear()}
         </h4>
         <button
           onClick={() => changeMonth(1)}
-          className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+          className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-xl transition-colors"
         >
           <span className="material-symbols-outlined text-sm text-slate-400">
             chevron_right
@@ -86,11 +111,11 @@ const Calendar = ({onDateChange}) => {
       </div>
 
       {/* Weekday labels */}
-      <div className="grid grid-cols-7 mb-4">
+      <div className="grid grid-cols-7 mb-3 sm:mb-4">
         {days.map((day) => (
           <span
             key={day}
-            className="text-[10px] font-black text-slate-300 text-center uppercase"
+            className="text-[9px] sm:text-[10px] font-black text-slate-300 text-center uppercase"
           >
             {day}
           </span>
@@ -98,34 +123,38 @@ const Calendar = ({onDateChange}) => {
       </div>
 
       {/* Days grid */}
-      <div className="grid grid-cols-7 gap-y-2">
+      <div className="grid grid-cols-7 gap-y-1.5 sm:gap-y-2">
         {monthDays.map((date, index) => {
-          // Check if day is Saturday or Sunday
-          const isWeekend =
-            date && (date.getDay() === 0 || date.getDay() === 6);
+          if (!date)
+            return <div key={index} className="w-7 h-7 sm:w-9 sm:h-9" />;
+
+          // 1. Check if it is Saturday (6) or Sunday (0)
+          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+          // 2. Check if the date is before today
+          const isPast = date < today;
+
+          // 3. Disable if it is weekend OR past
+          const isDisabled = isWeekend || isPast;
 
           return (
             <div key={index} className="flex justify-center">
-              {date ? (
-                <button
-                  type="button"
-                  disabled={isWeekend} // Disable button if weekend
-                  onClick={() => handleDateClick(date)}
-                  className={`w-9 h-9 rounded-xl text-[11px] font-bold transition-all
+              <button
+                type="button"
+                disabled={isDisabled}
+                onClick={() => handleDateClick(date)}
+                className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-bold transition-all
                     ${
                       selectedDate?.toDateString() === date.toDateString()
                         ? "bg-[#137fec] text-white shadow-lg shadow-blue-200"
-                        : isWeekend
-                          ? "text-slate-200 cursor-not-allowed"
+                        : isDisabled
+                          ? "text-slate-200 cursor-not-allowed opacity-40"
                           : "text-slate-600 hover:bg-blue-50 hover:text-[#137fec]"
                     }
                   `}
-                >
-                  {date.getDate()}
-                </button>
-              ) : (
-                <div className="w-9 h-9" />
-              )}
+              >
+                {date.getDate()}
+              </button>
             </div>
           );
         })}

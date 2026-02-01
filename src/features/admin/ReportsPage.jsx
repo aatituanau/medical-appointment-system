@@ -1,140 +1,170 @@
-import React from "react";
+import React, {useState, useMemo} from "react";
+import ReportCharts from "../../components/ui-admin/ReportCharts";
+import AppointmentsTable from "../../components/ui-admin/AppointmentsTable";
+import {useAllAppointmentsRealtime} from "../../hooks/useAppointments";
+import {downloadAppointmentsExcel} from "../../utils/excelGenerator";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+} from "chart.js";
+import ReportsSkeleton from "../../components/skeletons/ReportsSkeleton";
+import StatsOverview from "./components/StatsOverview";
+
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+);
 
 const ReportsPage = () => {
-  const stats = [
-    {label: "Total Appointments", value: "42", color: "bg-blue-500"},
-    {label: "Confirmed", value: "35", color: "bg-green-500"},
-    {label: "Canceled", value: "7", color: "bg-red-500"},
-  ];
+  const [filterStatus, setFilterStatus] = useState("todos");
+  const [dateRange, setDateRange] = useState({start: "", end: ""});
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const agenda = [
-    {
-      time: "08:00 AM",
-      patient: "Juan Pérez",
-      id: "1723456789",
-      doctor: "Dra. Maria Lopez",
-      spec: "Cardiology",
-      status: "Confirmed",
-      sColor: "text-green-600 bg-green-50",
-    },
-    {
-      time: "08:30 AM",
-      patient: "Ana Torres",
-      id: "1712345678",
-      doctor: "Dr. Roberto Gomez",
-      spec: "General Medicine",
-      status: "Confirmed",
-      sColor: "text-green-600 bg-green-50",
-    },
-    {
-      time: "09:15 AM",
-      patient: "Luis Mendez",
-      id: "1756789012",
-      doctor: "Dra. Elena Diaz",
-      spec: "Dermatology",
-      status: "Canceled",
-      sColor: "text-red-600 bg-red-50",
-    },
-  ];
+  const {data: appointments, isLoading} = useAllAppointmentsRealtime();
+
+  const stats = useMemo(() => {
+    if (!appointments) {
+      return {
+        total: 0,
+        confirmed: 0,
+        cancelled: 0,
+        specialties: {},
+        filteredList: [],
+        chartStats: {confirmed: 0, cancelled: 0},
+      };
+    }
+
+    // --- LOGIC OF WEEKLY FILTERING FOR CHARTS ---
+    const today = new Date();
+    const firstDayOfWeek = new Date(
+      today.setDate(today.getDate() - today.getDay()),
+    ); // Sunday
+    firstDayOfWeek.setHours(0, 0, 0, 0);
+
+    const weeklyAppointments = appointments.filter((a) => {
+      const appDate = new Date(a.date);
+      return appDate >= firstDayOfWeek;
+    });
+
+    // Statistics for Charts (This Week Only)
+    const chartConfirmed = weeklyAppointments.filter(
+      (a) => a.status?.toLowerCase() === "confirmada",
+    ).length;
+    const chartCancelled = weeklyAppointments.filter(
+      (a) => a.status?.toLowerCase() === "cancelada",
+    ).length;
+
+    const specialties = weeklyAppointments.reduce((acc, curr) => {
+      const spec = curr.specialty || "General";
+      acc[spec] = (acc[spec] || 0) + 1;
+      return acc;
+    }, {});
+
+    // --- GENERAL LOGIC FOR CARDS AND TABLE ---
+    const total = appointments.length;
+    const confirmed = appointments.filter(
+      (a) => a.status?.toLowerCase() === "confirmada",
+    ).length;
+    const cancelled = appointments.filter(
+      (a) => a.status?.toLowerCase() === "cancelada",
+    ).length;
+
+    let filtered = [...appointments].sort(
+      (a, b) => new Date(b.date) - new Date(a.date),
+    );
+
+    if (filterStatus !== "todos") {
+      filtered = filtered.filter(
+        (a) => a.status?.toLowerCase() === filterStatus,
+      );
+    }
+
+    if (dateRange.start && dateRange.end) {
+      filtered = filtered.filter((a) => {
+        const appDate = new Date(a.date);
+        const start = new Date(dateRange.start);
+        const end = new Date(dateRange.end);
+        appDate.setHours(0, 0, 0, 0);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+        return appDate >= start && appDate <= end;
+      });
+    }
+
+    return {
+      total,
+      confirmed,
+      cancelled,
+      specialties,
+      filteredList: filtered,
+      chartData: {confirmed: chartConfirmed, cancelled: chartCancelled},
+    };
+  }, [appointments, filterStatus, dateRange]);
+
+  const exportToExcel = () => {
+    downloadAppointmentsExcel(stats.filteredList, filterStatus);
+  };
+
+  if (isLoading) {
+    return <ReportsSkeleton />;
+  }
+
+  const totalPages = Math.ceil(stats.filteredList.length / itemsPerPage);
+  const currentItems = stats.filteredList.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div className="flex justify-between items-end">
+    <div className="space-y-8 animate-fade-in pb-12 p-4 md:p-0">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">
-            Consult Agenda
+          <h1 className="text-4xl font-black text-slate-800 tracking-tight">
+            Reportes de Gestión
           </h1>
-          <p className="text-slate-500 text-sm font-medium">
-            Overview of scheduled appointments for today.
+          <p className="text-slate-400 font-bold mt-1 text-sm uppercase tracking-widest">
+            Hospital del Día — Los gráficos muestran datos de la SEMANA ACTUAL
           </p>
         </div>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, i) => (
-          <div
-            key={i}
-            className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative overflow-hidden"
-          >
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              {stat.label}
-            </p>
-            <h2 className="text-4xl font-black text-slate-800 mt-2">
-              {stat.value}
-            </h2>
-            <div
-              className={`absolute bottom-0 left-6 right-6 h-1 ${stat.color} rounded-full`}
-            ></div>
-          </div>
-        ))}
-      </div>
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50/50 border-b border-slate-50">
-            <tr>
-              <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Time
-              </th>
-              <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Patient
-              </th>
-              <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Doctor & Specialty
-              </th>
-              <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
-                Status
-              </th>
-              <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {agenda.map((item, idx) => (
-              <tr key={idx} className="hover:bg-slate-50/30 transition-colors">
-                <td className="px-8 py-6 font-black text-slate-700 text-sm">
-                  {item.time}
-                </td>
-                <td className="px-6 py-6">
-                  <p className="font-bold text-slate-800 text-sm">
-                    {item.patient}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-medium">
-                    ID: {item.id}
-                  </p>
-                </td>
-                <td className="px-6 py-6">
-                  <div className="flex items-center gap-3">
-                    <div className="size-8 rounded-full bg-slate-100 overflow-hidden">
-                      <img src={`https://i.pravatar.cc/100?u=${idx}`} alt="" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-slate-700">
-                        {item.doctor}
-                      </p>
-                      <p className="text-[10px] text-[#137fec] font-bold">
-                        {item.spec}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-6 text-center">
-                  <span
-                    className={`px-4 py-1.5 rounded-full text-[10px] font-black border ${item.sColor}`}
-                  >
-                    ● {item.status}
-                  </span>
-                </td>
-                <td className="px-8 py-6 text-right">
-                  <button className="text-slate-300 hover:text-slate-600">
-                    <span className="material-symbols-outlined">more_vert</span>
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Global Summary Cards */}
+      <StatsOverview
+        total={stats.total}
+        confirmed={stats.confirmed}
+        cancelled={stats.cancelled}
+      />
+
+      {/* Analysis Charts (Weekly Filtered) */}
+      <ReportCharts
+        confirmed={stats.chartData.confirmed}
+        cancelled={stats.chartData.cancelled}
+        specialties={stats.specialties}
+      />
+
+      <AppointmentsTable
+        items={currentItems}
+        filterStatus={filterStatus}
+        setFilterStatus={setFilterStatus}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
+        onExport={exportToExcel}
+      />
     </div>
   );
 };

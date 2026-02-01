@@ -1,10 +1,10 @@
-import React from "react";
+import React, {useState} from "react";
 import {NavLink, useLocation, useNavigate} from "react-router-dom";
-import logoH from "../../assets/logoH.png";
 import {auth} from "../../firebase/config";
 import {signOut} from "firebase/auth";
 
 const Sidebar = () => {
+  const [isOpen, setIsOpen] = useState(true);
   const {pathname} = useLocation();
   const navigate = useNavigate();
   const isAdminPath = pathname.startsWith("/admin");
@@ -36,49 +36,76 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-72 bg-white border-r border-slate-200 flex flex-col h-full sticky top-0 z-20 shrink-0 overflow-hidden">
-      <div className="p-8 flex flex-col items-center border-b border-slate-50 shrink-0">
-        <img src={logoH} alt="Logo UCE" className="h-12 w-auto mb-3" />
-        <h2 className="text-slate-800 font-black text-sm tracking-tighter text-center leading-tight">
-          HOSPITAL DEL DÍA <br />
-          <span className="text-primary font-bold">UCE</span>
-        </h2>
+    <aside
+      className={`${isOpen ? "w-72" : "w-20"} bg-white border-r border-slate-200 flex flex-col h-full sticky top-0 z-20 shrink-0 overflow-hidden transition-all duration-300 ease-in-out`}
+    >
+      {/* HEADER: Texto + Botón alineados */}
+      <div
+        className={`p-6 flex items-center transition-all ${isOpen ? "justify-between" : "justify-center"}`}
+      >
+        {isOpen && (
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] truncate">
+            {isAdminPath ? "Administración" : "Portal Usuario"}
+          </p>
+        )}
+
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`size-9 flex items-center justify-center rounded-xl transition-all ${
+            isOpen
+              ? "bg-slate-50 text-slate-400 hover:text-[#137fec] hover:bg-blue-50"
+              : "bg-[#137fec] text-white shadow-lg shadow-blue-200"
+          }`}
+          title={isOpen ? "Colapsar" : "Expandir"}
+        >
+          <span className="material-icons-outlined text-xl">
+            {isOpen ? "menu_open" : "menu"}
+          </span>
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
-        <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
-          {isAdminPath ? "Administración" : "Portal Usuario"}
-        </p>
-        <nav className="space-y-1">
+      <div className="flex-1 overflow-y-auto px-3 custom-scrollbar">
+        <nav className="space-y-1.5">
           {menuItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
+              title={!isOpen ? item.label : ""}
               className={({isActive}) =>
-                `flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm transition-all ${
+                `flex items-center ${isOpen ? "gap-4 px-4" : "justify-center px-0"} py-3.5 rounded-2xl font-bold text-sm transition-all ${
                   isActive
                     ? "bg-slate-800 text-white shadow-lg"
                     : "text-slate-500 hover:bg-slate-50"
                 }`
               }
             >
-              <span className="material-icons-outlined">{item.icon}</span>
-              {item.label}
+              <span className="material-icons-outlined shrink-0 text-xl">
+                {item.icon}
+              </span>
+              {isOpen && (
+                <span className="whitespace-nowrap uppercase tracking-tight text-xs font-black">
+                  {item.label}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
       </div>
 
-      {/* 3. SECCIÓN INFERIOR (Fija en la base) */}
+      {/* Logout Footer */}
       <div className="p-4 bg-slate-50/50 border-t border-slate-100 shrink-0">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-4 px-4 py-4 text-red-600 hover:bg-red-50 rounded-xl transition-all font-black text-sm group"
+          className={`flex items-center ${isOpen ? "gap-4 px-4" : "justify-center px-0"} py-4 w-full text-red-600 hover:bg-red-50 rounded-2xl transition-all font-black text-xs group`}
         >
-          <span className="material-icons-outlined group-hover:rotate-12 transition-transform text-xl">
+          <span className="material-icons-outlined group-hover:rotate-12 transition-transform text-xl shrink-0">
             logout
           </span>
-          CERRAR SESIÓN
+          {isOpen && (
+            <span className="whitespace-nowrap uppercase tracking-widest">
+              Cerrar Sesión
+            </span>
+          )}
         </button>
       </div>
     </aside>
