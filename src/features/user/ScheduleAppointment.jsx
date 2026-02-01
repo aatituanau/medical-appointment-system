@@ -8,6 +8,7 @@ import emailjs from "@emailjs/browser";
 import uce from "../../assets/uce.png";
 import ConsultationForm from "./components/ConsultationForm";
 import AvailableSlots from "./components/AvailableSlots";
+import useAppointmentStore from "../../store/useAppointmentStore"; //Suztand store
 
 // Hooks of conection to medical data
 import {useDoctors} from "../../hooks/useDoctors";
@@ -21,37 +22,49 @@ const ScheduleAppointment = () => {
   const navigate = useNavigate();
   const {user} = useAuth();
 
-  // States
-  const [specialty, setSpecialty] = useState(
-    searchParams.get("specialty") || "Medicina General",
-  );
-  const [selectedDocObj, setSelectedDocObj] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
-  const [selectedTime, setSelectedTime] = useState("");
+  // We extract everything from the Zustand store.
+  const {
+    selectedSpecialty: specialty,
+    selectedDoctor: selectedDocObj,
+    selectedDate,
+    selectedSlot: selectedTime,
+    setSpecialty,
+    setDoctor: setSelectedDocObj,
+    setDate: setSelectedDate,
+    setSlot: setSelectedTime,
+    resetAppointment,
+  } = useAppointmentStore();
+
+  // Alert state local
   const [alert, setAlert] = useState({show: false, type: "", msg: ""});
+
+  // We set initial values ​​from URL or by default
+  useEffect(() => {
+    const urlSpecialty = searchParams.get("specialty");
+    if (urlSpecialty && !specialty) {
+      setSpecialty(urlSpecialty);
+    } else if (!specialty) {
+      setSpecialty("Medicina General");
+    }
+    // For default date, today
+    if (!selectedDate) {
+      setSelectedDate(new Date().toISOString().split("T")[0]);
+    }
+  }, []);
 
   // Data loading
   const {data: specialties} = useSpecialties();
   const {data: allDoctors} = useDoctors();
   const {mutateAsync: bookSlot, isLoading: isBooking} = useBookSlot();
 
+  // Filters using the variables that now come from Zustand
   const filteredDoctors = allDoctors?.filter(
     (d) => d.specialty === specialty && d.status === "active",
   );
 
   const realtimeSlots = useRealtimeSlots(selectedDocObj?.id, selectedDate);
 
-  const morningSlots = realtimeSlots
-    ? Object.values(realtimeSlots).filter((s) => parseInt(s.time) < 1300)
-    : [];
-
-  const afternoonSlots = realtimeSlots
-    ? Object.values(realtimeSlots).filter((s) => parseInt(s.time) >= 1300)
-    : [];
-
-  // function for closing alerts automatically in 5 seconds
+  // useEffect to close alerts (no changes)
   useEffect(() => {
     if (alert.show) {
       const timer = setTimeout(() => setAlert({...alert, show: false}), 5000);
@@ -116,6 +129,9 @@ const ScheduleAppointment = () => {
         msg: `¡Excelente! Tu cita ha sido agendada para las ${selectedTime}. Revisa tu correo electrónico.`,
       });
 
+      // 4. Clean the store after successful completion
+      resetAppointment();
+
       setTimeout(() => navigate("/citas"), 3000);
     } catch (error) {
       setAlert({
@@ -138,7 +154,7 @@ const ScheduleAppointment = () => {
         <div className="lg:col-span-7 space-y-6">
           {/* Component ConsultationForm */}
           <ConsultationForm
-            specialty={specialty}
+            specialty={specialty || "Medicina General"} // Fallback visual
             setSpecialty={setSpecialty}
             selectedDocObj={selectedDocObj}
             setSelectedDocObj={setSelectedDocObj}
@@ -155,9 +171,12 @@ const ScheduleAppointment = () => {
               Selecciona fecha
             </h3>
             <Calendar
+              // We pass the date from the store to the calendar
+              selected={selectedDate}
+              // When the calendar detects a click, it notifies the store
               onDateChange={(date) => {
-                setSelectedDate(date);
-                setSelectedTime("");
+                setSelectedDate(date); // Save in Zustand
+                setSelectedTime(""); // Reset the time because the day changed
               }}
             />
           </div>
@@ -166,7 +185,7 @@ const ScheduleAppointment = () => {
         <div className="lg:col-span-5 space-y-6">
           <DoctorSelectionCard
             name={selectedDocObj?.name || "Seleccione Médico"}
-            specialty={specialty}
+            specialty={specialty || "..."}
             image={selectedDocObj?.image || uce}
           />
 

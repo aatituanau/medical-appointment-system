@@ -152,7 +152,7 @@ const LoginCard = () => {
                 className="size-5"
                 src="https://www.google.com/favicon.ico"
               />
-              <span>Cuenta Google</span>
+              <span>Inicia sesión con Google</span>
             </button>
           </form>
           <div className="bg-slate-50 px-8 py-6 text-center border-t border-slate-100 text-sm">
