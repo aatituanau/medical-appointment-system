@@ -1,9 +1,30 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 
-const Calendar = ({onDateChange}) => {
+const Calendar = ({onDateChange, selected}) => {
   // Initialize with today's date
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  // --- ZUSTAND INTEGRATION START ---
+  // Reconstruct the Date object from the 'selected' string prop to keep original comparison logic
+  let selectedDate = null;
+  if (selected) {
+    const [year, month, day] = selected.split("-").map(Number);
+    selectedDate = new Date(year, month - 1, day);
+  }
+
+  // Sync view when selected date changes externally
+  useEffect(() => {
+    if (selectedDate) {
+      // If selected date is in another month, update view
+      if (
+        selectedDate.getMonth() !== currentDate.getMonth() ||
+        selectedDate.getFullYear() !== currentDate.getFullYear()
+      ) {
+        setCurrentDate(new Date(selectedDate));
+      }
+    }
+  }, [selected]);
+  // --- ZUSTAND INTEGRATION END ---
 
   // Get "Today" at 00:00:00 to compare correctly
   const today = new Date();
@@ -48,7 +69,7 @@ const Calendar = ({onDateChange}) => {
     // If it is weekend or past date, do nothing
     if (isWeekend || isPast) return;
 
-    setSelectedDate(date);
+    // setSelectedDate(date);
     const formattedDate = date.toISOString().split("T")[0];
     onDateChange(formattedDate);
   };
