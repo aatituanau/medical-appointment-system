@@ -1,7 +1,6 @@
 import React, {useMemo} from "react";
 import {useNavigate} from "react-router-dom";
 import AppointmentCard from "../../../components/ui/AppointmentCard";
-// Reuse the shared Skeleton component so the loading state matches the rest of the app
 import Skeleton from "../../../components/ui/Skeleton";
 
 const NextAppointmentSection = ({appointments, isLoading, user, onCancel}) => {
@@ -39,7 +38,8 @@ const NextAppointmentSection = ({appointments, isLoading, user, onCancel}) => {
             {/* Simulated header: date and status badge */}
             <div className="flex justify-between items-start mb-4">
               <div className="space-y-2">
-                <Skeleton className="h-3 w-20 rounded-full" /> {/* Small date */}
+                <Skeleton className="h-3 w-20 rounded-full" />{" "}
+                {/* Small date */}
                 <Skeleton className="h-6 w-32 rounded-lg" /> {/* Large time */}
               </div>
               <Skeleton className="h-8 w-24 rounded-full" /> {/* Status chip */}
