@@ -14,10 +14,12 @@ import InputField from "../../components/ui/InputField";
 import logoH from "../../assets/logoH.png";
 import Footer from "../../components/layout/Footer";
 import StatusAlert from "../../components/ui/StatusAlert";
+import {useAuth} from "../../context/AuthContext";
 
 const LoginCard = () => {
   const navigate = useNavigate();
   const [alertInfo, setAlertInfo] = useState({show: false, msg: "", type: ""});
+  const {user, userData, loading} = useAuth();
 
   // 1. Configure React Hook Form with Zod
   const {
@@ -39,6 +41,15 @@ const LoginCard = () => {
       });
     }
   }, [errors]);
+
+  //Verify if user is logged in and redirect
+  useEffect(() => {
+    if (!loading && user) {
+      const destination =
+        userData?.role === "admin" ? "/admin/specialties" : "/dashboard";
+      navigate(destination, {replace: true});
+    }
+  }, [loading, user, userData, navigate]);
 
   const handleLogin = async (data) => {
     try {

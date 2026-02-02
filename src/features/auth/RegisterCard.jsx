@@ -11,11 +11,13 @@ import Footer from "../../components/layout/Footer";
 import StatusAlert from "../../components/ui/StatusAlert";
 import Hosp from "../../assets/Hosp.jpg";
 import logoH from "../../assets/logoH.png";
+import {useAuth} from "../../context/AuthContext";
 
 const RegisterCard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [alertInfo, setAlertInfo] = useState({show: false, msg: "", type: ""});
+  const {user, userData, loading: authLoading} = useAuth();
 
   // Configuration of React Hook Form with Zod
   const {
@@ -38,6 +40,14 @@ const RegisterCard = () => {
       });
     }
   }, [errors]);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      const destination =
+        userData?.role === "admin" ? "/admin/specialties" : "/dashboard";
+      navigate(destination, {replace: true});
+    }
+  }, [authLoading, user, userData, navigate]);
 
   const handleRegister = async (data) => {
     setLoading(true);

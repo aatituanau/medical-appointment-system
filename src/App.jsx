@@ -15,6 +15,7 @@ import SpecialtiesPage from "./features/admin/SpecialtiesPage";
 import DoctorsPage from "./features/admin/DoctorsPage";
 import ReportsPage from "./features/admin/ReportsPage";
 import AppointmentsPage from "./features/admin/AppointmentsPage";
+import LandingPage from "./features/public/LandingPage";
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
       <Navbar />
 
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginCard />} />
         <Route path="/register" element={<RegisterCard />} />
 
