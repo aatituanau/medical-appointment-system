@@ -5,6 +5,8 @@ import {doc, getDoc} from "firebase/firestore";
 
 const AuthContext = createContext();
 
+const PUBLIC_PATHS = ["/", "/login", "/register"];
+
 export const AuthProvider = ({children}) => {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -23,10 +25,10 @@ export const AuthProvider = ({children}) => {
         setUser(null);
         setUserData(null);
 
-        if (
-          window.location.pathname !== "/login" &&
-          window.location.pathname !== "/register"
-        ) {
+        const {pathname} = window.location;
+        const isPublicRoute = PUBLIC_PATHS.includes(pathname);
+
+        if (!isPublicRoute) {
           window.location.href = "/login";
         }
       }
