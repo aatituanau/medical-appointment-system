@@ -1,6 +1,6 @@
 import React, {useMemo} from "react";
 import {useNavigate} from "react-router-dom";
-import AppointmentCard from "../../../components/ui/AppointmentCard";
+import AppointmentCard from "./AppointmentCard";
 import Skeleton from "../../../components/ui/Skeleton";
 
 const NextAppointmentSection = ({appointments, isLoading, user, onCancel}) => {

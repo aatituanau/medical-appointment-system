@@ -1,11 +1,11 @@
 import React, {useState} from "react";
-import {useSpecialties} from "../../hooks/useSpecialties";
-import {useDebounce} from "../../hooks/useDebounce";
-import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
-import MedicalModal from "../../components/ui-admin/MedicalModal";
-import MedicalForm from "../../components/ui-admin/MedicalForm";
-import SpecialtiesSkeleton from "../../components/skeletons/SpecialtiesSkeleton";
-import SpecialtiesTable from "./components/SpecialtiesTable";
+import {useSpecialties} from "../../../hooks/useSpecialties";
+import {useDebounce} from "../../../hooks/useDebounce";
+import AdminSearchHeader from "../components/AdminSearchHeader";
+import MedicalModal from "../components/MedicalModal";
+import MedicalForm from "../components/MedicalForm";
+import SpecialtiesSkeleton from "../../../components/skeletons/SpecialtiesSkeleton";
+import SpecialtiesTable from "../components/SpecialtiesTable";
 
 const SpecialtiesPage = () => {
   // --- STATES ---

@@ -1,14 +1,14 @@
 import React, {useState, useMemo} from "react";
-import {useAuth} from "../../context/AuthContext";
+import {useAuth} from "../../../context/AuthContext";
 import {
   useUserAppointments,
   useCancelAppointment,
-} from "../../hooks/useAppointments";
+} from "../../../hooks/useAppointments";
 import Swal from "sweetalert2";
-import AppointmentCard from "../../components/ui/AppointmentCard";
-import ReportFilters from "../../components/ui-admin/ReportFilters";
-import AppointmentsSkeleton from "../../components/skeletons/AppointmentsSkeleton";
-import PaginationControls from "./components/PaginationControls";
+import AppointmentCard from "../components/AppointmentCard";
+import ReportFilters from "../../admin/components/ReportFilters";
+import AppointmentsSkeleton from "../../../components/skeletons/AppointmentsSkeleton";
+import PaginationControls from "../components/PaginationControls";
 
 const MyAppointments = () => {
   const {user} = useAuth();

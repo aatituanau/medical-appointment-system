@@ -2,7 +2,7 @@ import React from "react";
 import {useNavigate} from "react-router-dom";
 import {useSpecialties} from "../../hooks/useSpecialties";
 import {getSpecialtyIcon} from "../../utils/specialtyIcons";
-import SpecialtyCard from "../../components/ui/SpecialtyCard";
+import SpecialtyCard from "../user/components/SpecialtyCard";
 import LandingHero from "./components/LandingHero";
 import MissionVision from "./components/MissionVision";
 import InfoCards from "./components/InfoCards";

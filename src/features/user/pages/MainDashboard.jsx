@@ -1,16 +1,16 @@
 import React from "react";
 import {useNavigate} from "react-router-dom";
-import {useAuth} from "../../context/AuthContext";
+import {useAuth} from "../../../context/AuthContext";
 import {
   useUserAppointments,
   useCancelAppointment,
-} from "../../hooks/useAppointments";
+} from "../../../hooks/useAppointments";
 import Swal from "sweetalert2";
 
 // Local dashboard widgets
-import WelcomeBanner from "./components/WelcomeBanner";
-import DashboardActionBtn from "./components/DashboardActionBtn";
-import NextAppointmentSection from "./components/NextAppointmentSection";
+import WelcomeBanner from "../components/WelcomeBanner";
+import DashboardActionBtn from "../components/DashboardActionBtn";
+import NextAppointmentSection from "../components/NextAppointmentSection";
 
 const MainDashboard = () => {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import React from "react";
-import TimeSlotGrid from "../../../components/ui/TimeSlotGrid";
+import TimeSlotGrid from "./TimeSlotGrid";
 
 const AvailableSlots = ({realtimeSlots, selectedTime, setSelectedTime}) => {
   return (

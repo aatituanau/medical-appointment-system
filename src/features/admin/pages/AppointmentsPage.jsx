@@ -1,18 +1,18 @@
 import React, {useState} from "react";
-import {useDoctors} from "../../hooks/useDoctors";
+import {useDoctors} from "../../../hooks/useDoctors";
 import {
   useDoctorAvailability,
   useManageAvailability,
-} from "../../hooks/useAvailability";
-import {useRealtimeSlots} from "../../hooks/useRealtimeSlots";
-import {useDebounce} from "../../hooks/useDebounce";
-import AdminSearchHeader from "../../components/ui-admin/AdminSearchHeader";
+} from "../../../hooks/useAvailability";
+import {useRealtimeSlots} from "../../../hooks/useRealtimeSlots";
+import {useDebounce} from "../../../hooks/useDebounce";
+import AdminSearchHeader from "../components/AdminSearchHeader";
 import {ref, set} from "firebase/database";
-import {rtdb} from "../../firebase/config";
+import {rtdb} from "../../../firebase/config";
 
-import ScheduleSkeleton from "../../components/skeletons/ScheduleSkeleton";
-import DoctorsSidebarList from "./components/DoctorsSidebarList";
-import ScheduleManager from "./components/ScheduleManager";
+import ScheduleSkeleton from "../../../components/skeletons/ScheduleSkeleton";
+import DoctorsSidebarList from "../components/DoctorsSidebarList";
+import ScheduleManager from "../components/ScheduleManager";
 
 const AppointmentsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
