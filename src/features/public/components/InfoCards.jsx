@@ -2,7 +2,7 @@ import React from "react";
 
 const InfoCards = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white flex flex-col justify-between">
         <span className="material-symbols-outlined text-blue-400 text-4xl mb-4">
           groups

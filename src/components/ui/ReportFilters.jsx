@@ -35,7 +35,7 @@ const ReportFilters = ({
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
               Período
             </span>
-            <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-100 shadow-inner">
+            <div className="flex bg-slate-100 p-1 rounded-2xl shadow-inner border border-slate-200/50 overflow-x-auto no-scrollbar">
               {[
                 {l: "Hoy", d: 0},
                 {l: "7d", d: 7},

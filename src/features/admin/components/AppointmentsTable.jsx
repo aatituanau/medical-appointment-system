@@ -61,7 +61,7 @@ const AppointmentsTable = ({
           setCurrentPage={setCurrentPage}
         />
       </div>
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left min-w-[900px]">
           <thead className="bg-slate-50/50">
             <tr>
@@ -130,6 +130,56 @@ const AppointmentsTable = ({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden divide-y divide-slate-100">
+        {items.map((item) => (
+          <div key={item.id} className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                {item.createdAt?.seconds
+                  ? new Date(item.createdAt.seconds * 1000).toLocaleDateString()
+                  : "Sin fecha"}
+              </p>
+              <span
+                className={`px-3 py-1 rounded-full text-[10px] font-black border ${
+                  item.status?.toLowerCase() === "confirmada"
+                    ? "text-green-600 bg-green-50 border-green-100"
+                    : "text-red-600 bg-red-50 border-red-100"
+                }`}
+              >
+                {item.status?.toUpperCase()}
+              </span>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-slate-800 font-black text-base">{item.date}</p>
+              <p className="text-blue-500 font-bold text-sm">{item.time}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <p className="text-slate-400 font-black uppercase tracking-wide">
+                  Paciente
+                </p>
+                <p className="text-slate-700 font-bold">{item.studentName}</p>
+                <p className="text-[10px] text-slate-400 font-bold">
+                  ID: {item.studentId}
+                </p>
+              </div>
+              <div>
+                <p className="text-slate-400 font-black uppercase tracking-wide">
+                  Médico
+                </p>
+                <p className="text-slate-700 font-bold">{item.doctorName}</p>
+                <p className="text-[10px] text-slate-400 font-bold">
+                  {item.specialty}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {totalPages > 1 && (
