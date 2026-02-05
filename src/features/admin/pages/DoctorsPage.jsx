@@ -7,6 +7,7 @@ import MedicalModal from "../components/MedicalModal";
 import MedicalForm from "../components/MedicalForm";
 import DoctorsSkeleton from "../../../components/skeletons/DoctorsSkeleton";
 import DoctorsTable from "../components/DoctorsTable";
+import {showAlertConfirm} from "../../../utils/alerts";
 
 const DoctorsPage = () => {
   // --- STATES ---
@@ -61,8 +62,13 @@ const DoctorsPage = () => {
   };
 
   // Handler for the delete action
-  const handleDeleteClick = (doc) => {
-    if (confirm(`¿Está seguro de eliminar al ${doc.name}?`)) {
+  const handleDeleteClick = async (doc) => {
+    const isConfirmed = await showAlertConfirm(
+      "¿Eliminar médico?",
+      `Se eliminará definitivamente a ${doc.name}.`,
+    );
+
+    if (isConfirmed) {
       deleteItem(doc.id);
     }
   };

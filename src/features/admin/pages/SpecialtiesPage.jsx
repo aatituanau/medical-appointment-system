@@ -6,6 +6,7 @@ import MedicalModal from "../components/MedicalModal";
 import MedicalForm from "../components/MedicalForm";
 import SpecialtiesSkeleton from "../../../components/skeletons/SpecialtiesSkeleton";
 import SpecialtiesTable from "../components/SpecialtiesTable";
+import {showAlertConfirm} from "../../../utils/alerts";
 
 const SpecialtiesPage = () => {
   // --- STATES ---
@@ -77,8 +78,13 @@ const SpecialtiesPage = () => {
   };
 
   // Handler for the delete action
-  const handleDeleteClick = (spec) => {
-    if (confirm(`¿Borrar ${spec.name}?`)) {
+  const handleDeleteClick = async (spec) => {
+    const isConfirmed = await showAlertConfirm(
+      "¿Eliminar especialidad?",
+      `Se eliminará definitivamente ${spec.name}.`,
+    );
+
+    if (isConfirmed) {
       deleteSpecialty(spec.id);
     }
   };

@@ -9,6 +9,7 @@ import {useDebounce} from "../../../hooks/useDebounce";
 import AdminSearchHeader from "../components/AdminSearchHeader";
 import {ref, set} from "firebase/database";
 import {rtdb} from "../../../firebase/config";
+import {showErrorAlert} from "../../../utils/alerts";
 
 import ScheduleSkeleton from "../../../components/skeletons/ScheduleSkeleton";
 import DoctorsSidebarList from "../components/DoctorsSidebarList";
@@ -43,7 +44,10 @@ const AppointmentsPage = () => {
       realtimeSlots && realtimeSlots[formattedTime]?.status === "taken";
 
     if (isTaken) {
-      alert("⚠️ No puedes modificar un horario ya agendado por un Usuario.");
+      await showErrorAlert(
+        "Horario no disponible",
+        "No puedes modificar un horario ya agendado por un usuario.",
+      );
       return;
     }
 
