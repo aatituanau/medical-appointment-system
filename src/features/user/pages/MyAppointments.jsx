@@ -6,7 +6,7 @@ import {
 } from "../../../hooks/useAppointments";
 import Swal from "sweetalert2";
 import AppointmentCard from "../components/AppointmentCard";
-import ReportFilters from "../../admin/components/ReportFilters";
+import ReportFilters from "../../../components/ui/ReportFilters";
 import AppointmentsSkeleton from "../../../components/skeletons/AppointmentsSkeleton";
 import PaginationControls from "../components/PaginationControls";
 

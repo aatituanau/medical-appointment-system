@@ -1,5 +1,5 @@
 import React from "react";
-import ReportFilters from "./ReportFilters";
+import ReportFilters from "../../../components/ui/ReportFilters";
 
 const AppointmentsTable = ({
   items,
