@@ -1,4 +1,6 @@
 import React, {useState} from "react";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
 import {useSpecialties} from "../../../hooks/useSpecialties";
 import {useDebounce} from "../../../hooks/useDebounce";
 import AdminSearchHeader from "../components/AdminSearchHeader";
@@ -7,6 +9,7 @@ import MedicalForm from "../components/MedicalForm";
 import SpecialtiesSkeleton from "../../../components/skeletons/SpecialtiesSkeleton";
 import SpecialtiesTable from "../components/SpecialtiesTable";
 import {showAlertConfirm} from "../../../utils/alerts";
+import {specialtySchema} from "../../../schemas/medicalSchemas";
 
 const SpecialtiesPage = () => {
   // --- STATES ---
@@ -14,10 +17,19 @@ const SpecialtiesPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentSpec, setCurrentSpec] = useState(null);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    active: true,
+  const [isActive, setIsActive] = useState(true);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: {errors},
+  } = useForm({
+    resolver: zodResolver(specialtySchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
   });
 
   // --- CUSTOM HOOKS ---
@@ -52,27 +64,26 @@ const SpecialtiesPage = () => {
   const handleOpenModal = (spec = null) => {
     if (spec) {
       setCurrentSpec(spec);
-      setFormData({
-        name: spec.name,
-        description: spec.description,
-        active: spec.active ?? true,
+      reset({
+        name: spec.name || "",
+        description: spec.description || "",
       });
+      setIsActive(spec.active ?? true);
     } else {
       setCurrentSpec(null);
-      setFormData({
-        name: "",
-        description: "",
-        active: true,
-      });
+      reset({name: "", description: ""});
+      setIsActive(true);
     }
     setIsModalOpen(true);
   };
 
-  const handleSubmit = () => {
+  const onSubmit = (data) => {
+    const payload = {...data, active: isActive};
+
     if (currentSpec) {
-      updateSpecialty({id: currentSpec.id, ...formData});
+      updateSpecialty({id: currentSpec.id, ...payload});
     } else {
-      addSpecialty(formData);
+      addSpecialty(payload);
     }
     setIsModalOpen(false);
   };
@@ -113,15 +124,13 @@ const SpecialtiesPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={currentSpec ? "Editar Especialidad" : "Nueva Especialidad"}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
       >
         <div className="max-h-[75vh] overflow-y-auto px-1">
           <MedicalForm
             fields={specFields}
-            formData={formData}
-            onChange={(name, value) =>
-              setFormData({...formData, [name]: value})
-            }
+            register={register}
+            errors={errors}
           />
 
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 mt-4">
@@ -131,18 +140,16 @@ const SpecialtiesPage = () => {
             <div className="flex items-center gap-3">
               <span
                 className={`text-[10px] font-bold ${
-                  formData.active ? "text-green-500" : "text-red-500"
+                  isActive ? "text-green-500" : "text-red-500"
                 }`}
               >
-                {formData.active ? "ACTIVO" : "INACTIVO"}
+                {isActive ? "ACTIVO" : "INACTIVO"}
               </span>
               <input
                 type="checkbox"
                 className="size-5 accent-blue-600 cursor-pointer"
-                checked={formData.active}
-                onChange={(e) =>
-                  setFormData({...formData, active: e.target.checked})
-                }
+                checked={isActive}
+                onChange={(e) => setIsActive(e.target.checked)}
               />
             </div>
           </div>

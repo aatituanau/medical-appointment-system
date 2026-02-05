@@ -1,4 +1,6 @@
 import React, {useState} from "react";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
 import {useDoctors} from "../../../hooks/useDoctors";
 import {useSpecialties} from "../../../hooks/useSpecialties";
 import {useDebounce} from "../../../hooks/useDebounce";
@@ -8,17 +10,27 @@ import MedicalForm from "../components/MedicalForm";
 import DoctorsSkeleton from "../../../components/skeletons/DoctorsSkeleton";
 import DoctorsTable from "../components/DoctorsTable";
 import {showAlertConfirm} from "../../../utils/alerts";
+import {doctorSchema} from "../../../schemas/medicalSchemas";
 
 const DoctorsPage = () => {
   // --- STATES ---
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentDoctor, setCurrentDoctor] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    specialty: "",
-    active: true,
+  const [doctorActive, setDoctorActive] = useState(true);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: {errors},
+  } = useForm({
+    resolver: zodResolver(doctorSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      specialty: "",
+    },
   });
 
   // --- HOOKS & DATA ---
@@ -39,24 +51,27 @@ const DoctorsPage = () => {
   const handleOpenModal = (doctor = null) => {
     if (doctor) {
       setCurrentDoctor(doctor);
-      setFormData({
-        name: doctor.name,
-        email: doctor.email,
-        specialty: doctor.specialty,
-        active: doctor.active,
+      reset({
+        name: doctor.name || "",
+        email: doctor.email || "",
+        specialty: doctor.specialty || "",
       });
+      setDoctorActive(doctor.active ?? true);
     } else {
       setCurrentDoctor(null);
-      setFormData({name: "", email: "", specialty: "", active: true});
+      reset({name: "", email: "", specialty: ""});
+      setDoctorActive(true);
     }
     setIsModalOpen(true);
   };
 
-  const handleSubmit = () => {
+  const onSubmit = (data) => {
+    const payload = {...data, active: doctorActive};
+
     if (currentDoctor) {
-      updateItem({id: currentDoctor.id, ...formData});
+      updateItem({id: currentDoctor.id, ...payload});
     } else {
-      addItem(formData);
+      addItem(payload);
     }
     setIsModalOpen(false);
   };
@@ -85,7 +100,7 @@ const DoctorsPage = () => {
     {
       name: "name",
       label: "Nombre Completo",
-      placeholder: "Ej: Dr. Alex Tituana",
+      placeholder: "Ej: Dr. Nombre de Médico",
       required: true,
     },
     {
@@ -127,15 +142,13 @@ const DoctorsPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={currentDoctor ? "Editar Médico" : "Registrar Médico"}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
       >
         <div className="max-h-[70vh] overflow-y-auto px-1">
           <MedicalForm
             fields={doctorFields}
-            formData={formData}
-            onChange={(name, value) =>
-              setFormData({...formData, [name]: value})
-            }
+            register={register}
+            errors={errors}
           />
           <div className="mt-4 flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -144,18 +157,16 @@ const DoctorsPage = () => {
             <div className="flex items-center gap-3">
               <span
                 className={`text-[10px] font-bold ${
-                  formData.active ? "text-green-500" : "text-red-500"
+                  doctorActive ? "text-green-500" : "text-red-500"
                 }`}
               >
-                {formData.active ? "ACTIVO" : "INACTIVO"}
+                {doctorActive ? "ACTIVO" : "INACTIVO"}
               </span>
               <input
                 type="checkbox"
                 className="size-5 accent-blue-600 cursor-pointer"
-                checked={formData.active}
-                onChange={(e) =>
-                  setFormData({...formData, active: e.target.checked})
-                }
+                checked={doctorActive}
+                onChange={(e) => setDoctorActive(e.target.checked)}
               />
             </div>
           </div>
