@@ -8,6 +8,7 @@ Web app that digitizes the booking flow for Hospital del Día Universitario. Pat
 ![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-12-FFCA28?logo=firebase&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4-38BDF8?logo=tailwindcss&logoColor=white)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/aatituanau/medical-appointment-system)
 
 </div>
 
@@ -76,7 +77,7 @@ Frontend internals:
 
 ## 📦 Scripts disponibles
 
-| Script                    | Descripción                                     |
+| Script                    | Description                                     |
 | ------------------------- | ----------------------------------------------- |
 | `npm run dev`             | Starts the Vite development server.             |
 | `npm run build`           | Generates the production-optimized build.       |
