@@ -39,7 +39,7 @@ Web app that digitizes the booking flow for Hospital del Día Universitario. Pat
    npm run dev
    ```
 
-## ☁️ Architecture (high level)
+## ☁️ Architecture
 
 ```
 Frontend (Vite + React)
