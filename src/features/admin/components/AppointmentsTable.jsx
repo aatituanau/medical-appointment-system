@@ -1,5 +1,6 @@
 import React from "react";
 import ReportFilters from "../../../components/ui/ReportFilters";
+import PaginationControls from "../../../components/ui/PaginationControls";
 
 const AppointmentsTable = ({
   items,
@@ -107,9 +108,6 @@ const AppointmentsTable = ({
                   <p className="font-bold text-slate-800 text-sm">
                     {item.studentName}
                   </p>
-                  <p className="text-[10px] text-slate-400 uppercase font-black">
-                    ID: {item.studentId}
-                  </p>
                 </td>
                 <td className="px-6 py-5">
                   <p className="text-xs font-bold text-slate-700">
@@ -182,39 +180,11 @@ const AppointmentsTable = ({
         ))}
       </div>
 
-      {totalPages > 1 && (
-        <div className="p-6 bg-slate-50/30 border-t border-slate-100 flex justify-center items-center gap-3">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-            className="p-2 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-white transition-all"
-          >
-            Atrás
-          </button>
-          <div className="flex gap-1">
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${
-                  currentPage === i + 1
-                    ? "bg-slate-800 text-white shadow-xl scale-110"
-                    : "bg-white text-slate-400 hover:bg-slate-50"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-            className="p-2 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-white transition-all"
-          >
-            Siguiente
-          </button>
-        </div>
-      )}
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };

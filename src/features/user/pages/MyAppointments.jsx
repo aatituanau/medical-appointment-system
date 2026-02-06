@@ -12,7 +12,7 @@ import {
 import AppointmentCard from "../components/AppointmentCard";
 import ReportFilters from "../../../components/ui/ReportFilters";
 import AppointmentsSkeleton from "../../../components/skeletons/AppointmentsSkeleton";
-import PaginationControls from "../components/PaginationControls";
+import PaginationControls from "../../../components/ui/PaginationControls";
 
 const MyAppointments = () => {
   const {user} = useAuth();
