@@ -11,13 +11,15 @@ import Footer from "../../components/layout/Footer";
 import StatusAlert from "../../components/ui/StatusAlert";
 import Hosp from "../../assets/Hosp.jpg";
 import logoH from "../../assets/logoH.png";
+import {useAuth} from "../../context/AuthContext";
 
 const RegisterCard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [alertInfo, setAlertInfo] = useState({show: false, msg: "", type: ""});
+  const {user, userData, loading: authLoading} = useAuth();
 
-  // Configuration of React Hook Form with Zod
+  // Configures React Hook Form with Zod resolver
   const {
     register,
     handleSubmit,
@@ -26,9 +28,9 @@ const RegisterCard = () => {
     resolver: zodResolver(registerSchema),
   });
 
-  // Effect to display Zod errors in your StatusAlert
+  // Pushes the first validation error into the shared alert
   useEffect(() => {
-    // Get the first error if it exists
+    // Extracts the first available error message, if any
     const errorMessages = Object.values(errors);
     if (errorMessages.length > 0) {
       setAlertInfo({
@@ -39,9 +41,19 @@ const RegisterCard = () => {
     }
   }, [errors]);
 
+  // Redirects authenticated users away from the registration page
+  useEffect(() => {
+    if (!authLoading && user) {
+      const destination =
+        userData?.role === "admin" ? "/admin/specialties" : "/dashboard";
+      navigate(destination, {replace: true});
+    }
+  }, [authLoading, user, userData, navigate]);
+
   const handleRegister = async (data) => {
     setLoading(true);
     try {
+      console.log(`[AUTH] Intento de registro para: ${data.email}`);
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         data.email,
@@ -49,19 +61,26 @@ const RegisterCard = () => {
       );
 
       await updateProfile(userCredential.user, {displayName: data.fullname});
+      console.log("[ACCION] Perfil de autenticación actualizado con nombre");
 
-      // Role logic (UCE vs External)
+      // Determines user role based on institutional domain
       const role = data.email.endsWith("@uce.edu.ec") ? "student" : "user";
+      console.log(`[ACCION] Rol asignado: ${role}`);
 
+      console.log(
+        `[API] Registrando usuario en Firebase UID: ${userCredential.user.uid}`,
+      );
       await setDoc(doc(db, "users", userCredential.user.uid), {
         fullname: data.fullname,
         email: data.email,
         role: role,
         createdAt: new Date(),
       });
+      console.log("[API] Usuario almacenado correctamente en Firebase");
 
       navigate("/dashboard");
     } catch (error) {
+      console.error("[ERROR] No se pudo completar el registro:", error);
       setLoading(false);
       if (error.code === "auth/email-already-in-use") {
         setAlertInfo({
@@ -79,7 +98,7 @@ const RegisterCard = () => {
     }
   };
 
-  // Blockade of numbers in the name field
+  // Prevents numeric input in the full name field
   const handleNameKeyDown = (e) => {
     if (
       ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"].includes(e.key)

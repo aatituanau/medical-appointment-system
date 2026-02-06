@@ -3,7 +3,7 @@ import React from "react";
 const DoctorsTable = ({doctors, onEdit, onDelete}) => {
   return (
     <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left min-w-[600px] md:min-w-full">
           <thead>
             <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -83,6 +83,63 @@ const DoctorsTable = ({doctors, onEdit, onDelete}) => {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden divide-y divide-slate-100">
+        {doctors?.map((doc) => (
+          <div key={doc.id} className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-black text-slate-800 uppercase leading-tight">
+                  {doc.name}
+                </p>
+                <p className="text-[10px] text-slate-400 font-bold">
+                  {doc.email}
+                </p>
+              </div>
+              <span
+                className={`text-[10px] font-black px-3 py-1 rounded-full ${
+                  doc.active
+                    ? "bg-green-50 text-green-600"
+                    : "bg-red-50 text-red-600"
+                }`}
+              >
+                {doc.active ? "ACTIVO" : "INACTIVO"}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                {doc.specialty}
+              </span>
+              <div className="flex gap-1">
+                <button
+                  onClick={() => onEdit(doc)}
+                  className="p-2 text-slate-400 hover:text-blue-500"
+                  aria-label="Editar médico"
+                >
+                  <span className="material-icons-outlined text-lg">edit</span>
+                </button>
+                <button
+                  onClick={() => onDelete(doc)}
+                  className="p-2 text-slate-400 hover:text-red-500"
+                  aria-label="Eliminar médico"
+                >
+                  <span className="material-icons-outlined text-lg">
+                    delete
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {doctors?.length === 0 && (
+          <div className="p-6 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
+            No se encontraron médicos
+          </div>
+        )}
       </div>
     </div>
   );

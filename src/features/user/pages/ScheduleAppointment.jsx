@@ -1,21 +1,21 @@
 import React, {useState, useEffect} from "react";
 import {useSearchParams, useNavigate} from "react-router-dom";
-import StatusAlert from "../../components/ui/StatusAlert";
-import Calendar from "../../components/ui/Calendar";
-import DoctorSelectionCard from "../../components/ui/DoctorSelectionCard";
-import AppointmentSummary from "../../components/ui/AppointmentSummary";
+import StatusAlert from "../../../components/ui/StatusAlert";
+import Calendar from "../../../components/ui/Calendar";
+import DoctorSelectionCard from "../components/DoctorSelectionCard";
+import AppointmentSummary from "../components/AppointmentSummary";
 import emailjs from "@emailjs/browser";
-import uce from "../../assets/uce.png";
-import ConsultationForm from "./components/ConsultationForm";
-import AvailableSlots from "./components/AvailableSlots";
-import useAppointmentStore from "../../store/useAppointmentStore"; //Suztand store
+import uce from "../../../assets/uce.png";
+import ConsultationForm from "../components/ConsultationForm";
+import AvailableSlots from "../components/AvailableSlots";
+import useAppointmentStore from "../../../store/useAppointmentStore"; //Suztand store
 
 // Hooks of conection to medical data
-import {useDoctors} from "../../hooks/useDoctors";
-import {useSpecialties} from "../../hooks/useSpecialties";
-import {useRealtimeSlots} from "../../hooks/useRealtimeSlots";
-import {useBookSlot} from "../../hooks/useAppointments";
-import {useAuth} from "../../context/AuthContext";
+import {useDoctors} from "../../../hooks/useDoctors";
+import {useSpecialties} from "../../../hooks/useSpecialties";
+import {useRealtimeSlots} from "../../../hooks/useRealtimeSlots";
+import {useBookSlot} from "../../../hooks/useAppointments";
+import {useAuth} from "../../../context/AuthContext";
 
 const ScheduleAppointment = () => {
   const [searchParams] = useSearchParams();

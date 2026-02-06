@@ -1,5 +1,5 @@
 import React from "react";
-import {generateAppointmentPDF} from "../../utils/pdfGenerator";
+import {generateAppointmentPDF} from "../../../utils/pdfGenerator";
 
 const AppointmentCard = ({
   cita,

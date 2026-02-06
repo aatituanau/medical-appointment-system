@@ -5,7 +5,6 @@ export const downloadAppointmentsExcel = (data, filterStatus) => {
     "FECHA DE CITA": item.date,
     HORA: item.time,
     PACIENTE: item.studentName?.toUpperCase(),
-    "CÉDULA/ID": item.studentId,
     "MÉDICO ESPECIALISTA": item.doctorName?.toUpperCase(),
     ESPECIALIDAD: item.specialty?.toUpperCase(),
     CONSULTORIO: `N° ${item.office}`,

@@ -4,7 +4,7 @@ import {auth} from "../../firebase/config";
 import {signOut} from "firebase/auth";
 
 const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const {pathname} = useLocation();
   const navigate = useNavigate();
   const isAdminPath = pathname.startsWith("/admin");
@@ -28,10 +28,11 @@ const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
+      console.log("[AUTH] Cerrando sesión del usuario actual");
       await signOut(auth);
       navigate("/login");
     } catch (error) {
-      console.error("Error logout:", error);
+      console.error("[ERROR] Fallo al cerrar sesión:", error);
     }
   };
 
@@ -39,7 +40,7 @@ const Sidebar = () => {
     <aside
       className={`${isOpen ? "w-72" : "w-20"} bg-white border-r border-slate-200 flex flex-col h-full sticky top-0 z-20 shrink-0 overflow-hidden transition-all duration-300 ease-in-out`}
     >
-      {/* HEADER: Texto + Botón alineados */}
+      {/* Header: label and toggle stay aligned */}
       <div
         className={`p-6 flex items-center transition-all ${isOpen ? "justify-between" : "justify-center"}`}
       >

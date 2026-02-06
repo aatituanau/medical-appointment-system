@@ -1,14 +1,18 @@
 import React, {useState, useMemo} from "react";
-import {useAuth} from "../../context/AuthContext";
+import {useAuth} from "../../../context/AuthContext";
 import {
   useUserAppointments,
   useCancelAppointment,
-} from "../../hooks/useAppointments";
-import Swal from "sweetalert2";
-import AppointmentCard from "../../components/ui/AppointmentCard";
-import ReportFilters from "../../components/ui-admin/ReportFilters";
-import AppointmentsSkeleton from "../../components/skeletons/AppointmentsSkeleton";
-import PaginationControls from "./components/PaginationControls";
+} from "../../../hooks/useAppointments";
+import {
+  showAlertConfirm,
+  showErrorAlert,
+  showSuccessToast,
+} from "../../../utils/alerts";
+import AppointmentCard from "../components/AppointmentCard";
+import ReportFilters from "../../../components/ui/ReportFilters";
+import AppointmentsSkeleton from "../../../components/skeletons/AppointmentsSkeleton";
+import PaginationControls from "../../../components/ui/PaginationControls";
 
 const MyAppointments = () => {
   const {user} = useAuth();
@@ -67,40 +71,33 @@ const MyAppointments = () => {
     return filteredAppointments.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredAppointments, currentPage, itemsPerPage]);
 
-  const handleCancelClick = (cita) => {
+  const handleCancelClick = async (cita) => {
     if (!canCancel(cita.date, cita.time)) {
-      Swal.fire({
-        title: "Cancelación denegada",
-        text: "Mínimo 24 horas de anticipación.",
-        icon: "error",
-        confirmButtonColor: "#137fec",
-      });
+      await showErrorAlert(
+        "Cancelación denegada",
+        "Mínimo 24 horas de anticipación.",
+      );
       return;
     }
 
-    Swal.fire({
-      title: "¿Anular esta cita?",
-      text: "El horario quedará libre para otros.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      confirmButtonText: "Sí, cancelar",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        cancelAppointment(
-          {
-            appointmentId: cita.id,
-            doctorId: cita.doctorId,
-            date: cita.date,
-            time: cita.time,
-          },
-          {
-            onSuccess: () =>
-              Swal.fire({title: "Cita Anulada", icon: "success"}),
-          },
-        );
-      }
-    });
+    const isConfirmed = await showAlertConfirm(
+      "¿Anular esta cita?",
+      "El horario quedará libre para otros usuarios.",
+    );
+
+    if (!isConfirmed) return;
+
+    cancelAppointment(
+      {
+        appointmentId: cita.id,
+        doctorId: cita.doctorId,
+        date: cita.date,
+        time: cita.time,
+      },
+      {
+        onSuccess: () => showSuccessToast("Cita anulada"),
+      },
+    );
   };
 
   if (isLoading) return <AppointmentsSkeleton />;

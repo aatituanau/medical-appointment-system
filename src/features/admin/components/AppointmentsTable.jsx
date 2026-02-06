@@ -1,5 +1,6 @@
 import React from "react";
-import ReportFilters from "./ReportFilters";
+import ReportFilters from "../../../components/ui/ReportFilters";
+import PaginationControls from "../../../components/ui/PaginationControls";
 
 const AppointmentsTable = ({
   items,
@@ -61,7 +62,7 @@ const AppointmentsTable = ({
           setCurrentPage={setCurrentPage}
         />
       </div>
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left min-w-[900px]">
           <thead className="bg-slate-50/50">
             <tr>
@@ -107,9 +108,6 @@ const AppointmentsTable = ({
                   <p className="font-bold text-slate-800 text-sm">
                     {item.studentName}
                   </p>
-                  <p className="text-[10px] text-slate-400 uppercase font-black">
-                    ID: {item.studentId}
-                  </p>
                 </td>
                 <td className="px-6 py-5">
                   <p className="text-xs font-bold text-slate-700">
@@ -132,39 +130,61 @@ const AppointmentsTable = ({
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="p-6 bg-slate-50/30 border-t border-slate-100 flex justify-center items-center gap-3">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-            className="p-2 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-white transition-all"
-          >
-            Atrás
-          </button>
-          <div className="flex gap-1">
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${
-                  currentPage === i + 1
-                    ? "bg-slate-800 text-white shadow-xl scale-110"
-                    : "bg-white text-slate-400 hover:bg-slate-50"
+      {/* Mobile cards */}
+      <div className="md:hidden divide-y divide-slate-100">
+        {items.map((item) => (
+          <div key={item.id} className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                {item.createdAt?.seconds
+                  ? new Date(item.createdAt.seconds * 1000).toLocaleDateString()
+                  : "Sin fecha"}
+              </p>
+              <span
+                className={`px-3 py-1 rounded-full text-[10px] font-black border ${
+                  item.status?.toLowerCase() === "confirmada"
+                    ? "text-green-600 bg-green-50 border-green-100"
+                    : "text-red-600 bg-red-50 border-red-100"
                 }`}
               >
-                {i + 1}
-              </button>
-            ))}
+                {item.status?.toUpperCase()}
+              </span>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-slate-800 font-black text-base">{item.date}</p>
+              <p className="text-blue-500 font-bold text-sm">{item.time}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <p className="text-slate-400 font-black uppercase tracking-wide">
+                  Paciente
+                </p>
+                <p className="text-slate-700 font-bold">{item.studentName}</p>
+                <p className="text-[10px] text-slate-400 font-bold">
+                  ID: {item.studentId}
+                </p>
+              </div>
+              <div>
+                <p className="text-slate-400 font-black uppercase tracking-wide">
+                  Médico
+                </p>
+                <p className="text-slate-700 font-bold">{item.doctorName}</p>
+                <p className="text-[10px] text-slate-400 font-bold">
+                  {item.specialty}
+                </p>
+              </div>
+            </div>
           </div>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-            className="p-2 rounded-xl border border-slate-200 disabled:opacity-30 hover:bg-white transition-all"
-          >
-            Siguiente
-          </button>
-        </div>
-      )}
+        ))}
+      </div>
+
+      <PaginationControls
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };
