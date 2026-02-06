@@ -1,8 +1,8 @@
 import React, {useState, useMemo} from "react";
-import ReportCharts from "../../components/ui-admin/ReportCharts";
-import AppointmentsTable from "../../components/ui-admin/AppointmentsTable";
-import {useAllAppointmentsRealtime} from "../../hooks/useAppointments";
-import {downloadAppointmentsExcel} from "../../utils/excelGenerator";
+import ReportCharts from "../components/ReportCharts";
+import AppointmentsTable from "../components/AppointmentsTable";
+import {useAllAppointmentsRealtime} from "../../../hooks/useAppointments";
+import {downloadAppointmentsExcel} from "../../../utils/excelGenerator";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -13,8 +13,8 @@ import {
   BarElement,
   Title,
 } from "chart.js";
-import ReportsSkeleton from "../../components/skeletons/ReportsSkeleton";
-import StatsOverview from "./components/StatsOverview";
+import ReportsSkeleton from "../../../components/skeletons/ReportsSkeleton";
+import StatsOverview from "../components/StatsOverview";
 
 ChartJS.register(
   ArcElement,
@@ -34,6 +34,7 @@ const ReportsPage = () => {
 
   const {data: appointments, isLoading} = useAllAppointmentsRealtime();
 
+  // Aggregates appointment stats for cards, charts, and paginated table
   const stats = useMemo(() => {
     if (!appointments) {
       return {
@@ -114,6 +115,9 @@ const ReportsPage = () => {
   }, [appointments, filterStatus, dateRange]);
 
   const exportToExcel = () => {
+    console.log(
+      `[ACCION] Exportando citas filtradas (${stats.filteredList.length} registros, estado: ${filterStatus})`,
+    );
     downloadAppointmentsExcel(stats.filteredList, filterStatus);
   };
 

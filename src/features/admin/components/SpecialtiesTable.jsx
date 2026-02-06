@@ -4,7 +4,7 @@ import {getSpecialtyIcon} from "../../../utils/specialtyIcons";
 const SpecialtiesTable = ({specialties, onEdit, onDelete}) => {
   return (
     <div className="bg-white rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left min-w-[500px] md:min-w-full">
           <thead className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <tr>
@@ -91,6 +91,63 @@ const SpecialtiesTable = ({specialties, onEdit, onDelete}) => {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="md:hidden divide-y divide-slate-100">
+        {specialties?.map((spec) => (
+          <div key={spec.id} className="p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="size-12 bg-blue-50/50 rounded-2xl flex items-center justify-center text-[#137fec]">
+                <span className="material-symbols-outlined text-2xl">
+                  {getSpecialtyIcon(spec.name)}
+                </span>
+              </div>
+              <div>
+                <p className="text-base font-black text-slate-800 uppercase italic leading-tight">
+                  {spec.name}
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  {spec.description || "Sin descripción"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span
+                className={`text-[10px] font-black px-3 py-1 rounded-full ${
+                  spec.active
+                    ? "bg-green-50 text-green-600"
+                    : "bg-red-50 text-red-600"
+                }`}
+              >
+                {spec.active ? "Activa" : "Inactiva"}
+              </span>
+
+              <div className="flex gap-1">
+                <button
+                  onClick={() => onEdit(spec)}
+                  className="p-2 text-slate-400 hover:text-blue-500"
+                >
+                  <span className="material-icons-outlined text-lg">edit</span>
+                </button>
+                <button
+                  onClick={() => onDelete(spec)}
+                  className="p-2 text-slate-400 hover:text-red-500"
+                >
+                  <span className="material-icons-outlined text-lg">
+                    delete
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {specialties?.length === 0 && (
+          <div className="p-6 text-center text-slate-400 text-[10px] font-black uppercase tracking-widest">
+            No se encontraron resultados
+          </div>
+        )}
       </div>
     </div>
   );

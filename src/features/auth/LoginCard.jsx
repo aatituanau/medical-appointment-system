@@ -21,7 +21,7 @@ const LoginCard = () => {
   const [alertInfo, setAlertInfo] = useState({show: false, msg: "", type: ""});
   const {user, userData, loading} = useAuth();
 
-  // 1. Configure React Hook Form with Zod
+  // Configures React Hook Form with Zod validation rules
   const {
     register,
     handleSubmit,
@@ -30,7 +30,7 @@ const LoginCard = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  // 2. Effect to show validation errors in the alert
+  // Surfaces the first validation error inside the alert component
   useEffect(() => {
     const errorMessages = Object.values(errors);
     if (errorMessages.length > 0) {
@@ -42,7 +42,7 @@ const LoginCard = () => {
     }
   }, [errors]);
 
-  //Verify if user is logged in and redirect
+  // Redirects any authenticated user to the proper dashboard
   useEffect(() => {
     if (!loading && user) {
       const destination =
@@ -53,19 +53,26 @@ const LoginCard = () => {
 
   const handleLogin = async (data) => {
     try {
+      console.log(`[AUTH] Intento de inicio para: ${data.email}`);
       const userCredential = await signInWithEmailAndPassword(
         auth,
         data.email,
         data.password,
       );
+      console.log("[ACCION] Credenciales validadas, consultando perfil...");
+      console.log(`[API] Consultando perfil`);
       const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
 
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        console.log(
+          `[AUTH] Usuario autenticado con rol: ${userData.role ?? "sin rol"}`,
+        );
         if (userData.role === "admin") navigate("/admin/specialties");
         else navigate("/dashboard");
       }
     } catch (error) {
+      console.error("[ERROR] Error durante el inicio de sesión:", error);
       setAlertInfo({
         show: true,
         msg: "Credenciales incorrectas. Verifica tu correo y contraseña.",
@@ -77,19 +84,25 @@ const LoginCard = () => {
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      console.log("[AUTH] Intento de inicio con Google");
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      console.log(`[AUTH] Google autenticó a: ${user.email ?? "sin correo"}`);
+      console.log(`[API] Buscando perfil existente del usuario`);
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (!userDoc.exists()) {
+        console.log("[API] Perfil no encontrado, creando registro...");
         await setDoc(doc(db, "users", user.uid), {
           fullname: user.displayName,
           email: user.email,
           role: "user",
           createdAt: new Date(),
         });
+        console.log("[API] Perfil creado correctamente en Firebase");
       }
       navigate("/dashboard");
     } catch (error) {
+      console.error("[ERROR] Fallo al iniciar sesión con Google:", error);
       setAlertInfo({
         show: true,
         msg: "No se pudo conectar con Google. Intenta nuevamente.",

@@ -1,16 +1,16 @@
 import React from "react";
 import {useNavigate} from "react-router-dom";
-import {useAuth} from "../../context/AuthContext";
+import {useAuth} from "../../../context/AuthContext";
 import {
   useUserAppointments,
   useCancelAppointment,
-} from "../../hooks/useAppointments";
-import Swal from "sweetalert2";
+} from "../../../hooks/useAppointments";
+import {showAlertConfirm, showSuccessToast} from "../../../utils/alerts";
 
 // Local dashboard widgets
-import WelcomeBanner from "./components/WelcomeBanner";
-import DashboardActionBtn from "./components/DashboardActionBtn";
-import NextAppointmentSection from "./components/NextAppointmentSection";
+import WelcomeBanner from "../components/WelcomeBanner";
+import DashboardActionBtn from "../components/DashboardActionBtn";
+import NextAppointmentSection from "../components/NextAppointmentSection";
 
 const MainDashboard = () => {
   const navigate = useNavigate();
@@ -28,34 +28,34 @@ const MainDashboard = () => {
     "Estudiante";
 
   // Delegate cancellation to child cards
-  const handleCancel = (cita) => {
-    Swal.fire({
-      title: "¿Cancelar cita?",
-      text: "Liberarás este turno.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      confirmButtonText: "Sí, cancelar",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        cancelAppointment({
-          appointmentId: cita.id,
-          doctorId: cita.doctorId,
-          date: cita.date,
-          time: cita.time,
-        });
-        Swal.fire("Cancelada", "La cita ha sido eliminada.", "success");
-      }
-    });
+  const handleCancel = async (cita) => {
+    const isConfirmed = await showAlertConfirm(
+      "¿Cancelar cita?",
+      "Liberarás este turno.",
+    );
+
+    if (!isConfirmed) return;
+
+    cancelAppointment(
+      {
+        appointmentId: cita.id,
+        doctorId: cita.doctorId,
+        date: cita.date,
+        time: cita.time,
+      },
+      {
+        onSuccess: () => showSuccessToast("Cita cancelada"),
+      },
+    );
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-10 px-2 animate-fade-in">
+    <div className="max-w-6xl mx-auto space-y-8 pb-12 px-4 sm:px-6 animate-fade-in">
       {/* 1. Compact banner */}
       <WelcomeBanner displayName={displayName} />
 
       {/* 2. Content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         {/* Left rail (7 cols): quick actions */}
         <div className="lg:col-span-7 space-y-6">
           <div className="flex items-center gap-3 px-2">
@@ -65,7 +65,7 @@ const MainDashboard = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <DashboardActionBtn
               onClick={() => navigate("/agendar")}
               icon="calendar_add_on"

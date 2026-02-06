@@ -2,7 +2,7 @@ import React from "react";
 import {useNavigate} from "react-router-dom";
 import {useSpecialties} from "../../hooks/useSpecialties";
 import {getSpecialtyIcon} from "../../utils/specialtyIcons";
-import SpecialtyCard from "../../components/ui/SpecialtyCard";
+import SpecialtyCard from "../user/components/SpecialtyCard";
 import LandingHero from "./components/LandingHero";
 import MissionVision from "./components/MissionVision";
 import InfoCards from "./components/InfoCards";
@@ -33,7 +33,7 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {isLoading
               ? [1, 2, 3, 4].map((i) => (
                   <div

@@ -1,5 +1,5 @@
 import React from "react";
-import StatCard from "../../../components/ui-admin/StatCard";
+import StatCard from "./StatCard";
 
 const StatsOverview = ({total, confirmed, cancelled}) => {
   return (
