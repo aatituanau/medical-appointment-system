@@ -157,7 +157,7 @@ service cloud.firestore {
 }
 ```
 
-## Initial data seed
+## Initial data seed (optional)
 
 To quickly fill `specialties` and `doctors`, create a temporary `SeedHospital` component (not part of the repo to avoid accidents). Suggested flow:
 
@@ -216,8 +216,6 @@ export default SeedHospital;
 
 2. Mount `<SeedHospital />` in your layout, click once, and wait. Running it again will duplicate records.
 3. Delete `temp/SeedHospital.jsx` and its import right after seeding.
-
-> Tip: move `hospitalData` to `seed/hospitalData.json` so you can reuse it with Node/Firebase Admin scripts.
 
 Example entry in `hospitalData`:
 
