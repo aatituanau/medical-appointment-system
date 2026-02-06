@@ -4,7 +4,7 @@ import {auth} from "../../firebase/config";
 import {signOut} from "firebase/auth";
 
 const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const {pathname} = useLocation();
   const navigate = useNavigate();
   const isAdminPath = pathname.startsWith("/admin");
