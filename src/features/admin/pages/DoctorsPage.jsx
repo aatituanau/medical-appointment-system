@@ -67,6 +67,9 @@ const DoctorsPage = () => {
 
   const onSubmit = (data) => {
     const payload = {...data, active: doctorActive};
+    console.log(
+      `[ACCION] Guardando médico ${currentDoctor ? "existente" : "nuevo"}: ${payload.name}`,
+    );
 
     if (currentDoctor) {
       updateItem({id: currentDoctor.id, ...payload});
@@ -78,12 +81,14 @@ const DoctorsPage = () => {
 
   // Handler for the delete action
   const handleDeleteClick = async (doc) => {
+    console.log(`[ACCION] Solicitud de eliminación para: ${doc.name}`);
     const isConfirmed = await showAlertConfirm(
       "¿Eliminar médico?",
       `Se eliminará definitivamente a ${doc.name}.`,
     );
 
     if (isConfirmed) {
+      console.log(`[ACCION] Confirmación recibida, eliminando a ${doc.name}`);
       deleteItem(doc.id);
     }
   };

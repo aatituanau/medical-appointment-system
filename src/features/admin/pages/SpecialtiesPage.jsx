@@ -79,6 +79,9 @@ const SpecialtiesPage = () => {
 
   const onSubmit = (data) => {
     const payload = {...data, active: isActive};
+    console.log(
+      `[ACCION] Guardando especialidad ${currentSpec ? "existente" : "nueva"}: ${payload.name}`,
+    );
 
     if (currentSpec) {
       updateSpecialty({id: currentSpec.id, ...payload});
@@ -90,12 +93,18 @@ const SpecialtiesPage = () => {
 
   // Handler for the delete action
   const handleDeleteClick = async (spec) => {
+    console.log(
+      `[ACCION] Solicitud de eliminación para especialidad: ${spec.name}`,
+    );
     const isConfirmed = await showAlertConfirm(
       "¿Eliminar especialidad?",
       `Se eliminará definitivamente ${spec.name}.`,
     );
 
     if (isConfirmed) {
+      console.log(
+        `[ACCION] Confirmación recibida, eliminando especialidad: ${spec.name}`,
+      );
       deleteSpecialty(spec.id);
     }
   };

@@ -34,6 +34,7 @@ const ReportsPage = () => {
 
   const {data: appointments, isLoading} = useAllAppointmentsRealtime();
 
+  // Aggregates appointment stats for cards, charts, and paginated table
   const stats = useMemo(() => {
     if (!appointments) {
       return {
@@ -114,6 +115,9 @@ const ReportsPage = () => {
   }, [appointments, filterStatus, dateRange]);
 
   const exportToExcel = () => {
+    console.log(
+      `[ACCION] Exportando citas filtradas (${stats.filteredList.length} registros, estado: ${filterStatus})`,
+    );
     downloadAppointmentsExcel(stats.filteredList, filterStatus);
   };
 

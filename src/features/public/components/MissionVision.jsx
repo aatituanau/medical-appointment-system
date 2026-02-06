@@ -3,7 +3,7 @@ import React from "react";
 const MissionVision = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Mision */}
+      {/* Mission */}
       <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
         <div className="flex items-center gap-4 mb-6">
           <div className="size-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#137fec]">
