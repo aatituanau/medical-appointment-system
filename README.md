@@ -78,17 +78,16 @@ Frontend internals:
 
 | Script                    | Descripción                                     |
 | ------------------------- | ----------------------------------------------- |
-| `npm run dev`             | Inicia el servidor de desarrollo Vite.          |
-| `npm run build`           | Genera el build optimizado para producción.     |
-| `npm run preview`         | Sirve el build generado para pruebas finales.   |
-| `npm run lint`            | Ejecuta ESLint sobre todo el código fuente.     |
-| `npm run storybook`       | Levanta Storybook en modo desarrollo (UI docs). |
-| `npm run build-storybook` | Compila la documentación de componentes.        |
+| `npm run dev`             | Starts the Vite development server.             |
+| `npm run build`           | Generates the production-optimized build.       |
+| `npm run preview`         | Serves the generated build for final testing.   |
+| `npm run lint`            | Runs ESLint on all the source code.             |
+| `npm run storybook`       | Starts Storybook in development mode (UI docs). |
+| `npm run build-storybook` | Compiles the component documentation.           |
 
 ## 🗄️ Database setup
 
-Create a **Firebase** project with: `Authentication`, `Cloud Firestore`, `Realtime Database`, and `Storage` (future attachments).
-
+Create a **Firebase** project with: `Authentication`, `Cloud Firestore`, `Realtime Database`.
 Minimum Firestore collections:
 
 | Collection     | Purpose                                                 |
@@ -224,7 +223,7 @@ Example entry in `hospitalData`:
   "name": "OFTALMOLOGIA",
   "docs": [
     {
-      "n": "Dra. Juan Perez",
+      "n": "Dr. Juan Perez",
       "c": "5",
       "h": ["12:00", "12:30", "13:00", "13:30"]
     }
