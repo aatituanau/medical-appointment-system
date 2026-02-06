@@ -22,7 +22,7 @@ Web app that digitizes the booking flow for Hospital del Día Universitario. Pat
 1. **Clone and enter the project**
 
    ```bash
-   git clone https://github.com/tu-usuario/medical-appointment-system.git
+   git clone https://github.com/aatituanau/medical-appointment-system
    cd medical-appointment-system
    ```
 
