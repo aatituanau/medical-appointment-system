@@ -1,18 +1,29 @@
-# (Build)
+# --- STAGE 1: BUILD STEP ---
 FROM node:18-alpine as build
+
 WORKDIR /app
-COPY package*.json ./
+
+# Copy dependency manifest first to leverage Docker cache
+COPY package.json package-lock.json ./
 RUN npm install
+
+# Copy all source code
 COPY . .
 
-
-
-
+# Build assets; Vite reads env vars from .env or build args
 RUN npm run build
 
+# --- STAGE 2: NGINX SERVER ---
+FROM nginx:alpine
 
-FROM nginx:stable-alpine
+# Copy compiled dist files into Nginx document root
 COPY --from=build /app/dist /usr/share/nginx/html
-RUN echo 'server { listen 80; location / { root /usr/share/nginx/html; index index.html; try_files $uri $uri/ /index.html; } }' > /etc/nginx/conf.d/default.conf
+
+# Provide custom Nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose default HTTP port
 EXPOSE 80
+
+# Start Nginx in foreground
 CMD ["nginx", "-g", "daemon off;"]
